@@ -1,0 +1,371 @@
+\documentclass[12pt,a4paper]{article}
+%----------------------Packages----------------------------
+\usepackage[a4paper,margin=1in,footskip=0.25in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{tikz}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\usetikzlibrary{calc}
+\usepackage{xcolor,color,colortbl}
+%\usepackage{hyperref}
+
+% ----------x----------Packages ----------x----------------
+
+\begin{document}
+\begin{question}
+\begin{equation}
+\frac{dy}{dt} = 2y + t^2 - 5
+\end{equation}
+\begin{center}
+$ y(0)=1 $ \qquad
+$Step size \quad h = 0.5 $
+
+Use the RK4 to find y for $0\leq t \leq 3$
+\end{center}
+
+\end{question}
+\hspace{2pt}
+
+\begin{solution}
+\begin{equation}\label{Eqtn2}\tag{2}
+\frac{dy}{dt} = y^\prime = f(t_n,y_n), \quad
+ t\geq 0 \quad y(t_0)= y_0 
+\end{equation}
+Consider the above ordinary differential equation \ref{Eqtn2}. We are given an initial point $y = y_0$ when $ t=t_0 $. Now, comparing this to the question, we have $y = 1 $ when $ t=0 $
+
+\noindent
+Let us consider the ERK of order 4. The Butcher's tableau for is given by
+
+\begin{equation}\label{table1}\tag{1.1}
+  \begin{array}{c|cccc}
+    0        \\
+    c_2       & a_{2,1}  \\
+    c_3       & a_{3,1}  &  a_{3,2}  \\
+    c_4       & a_{4,1}  &  a_{4,2}   & a_{4,3} \\
+    \hline
+    \,        & b_1      & b_2       &b_3     & b_4
+  \end{array}
+\end{equation}
+
+\noindent
+The best known fourth-order four-stage ERK method is given by
+
+\begin{equation}\label{table2}\tag{1.2}
+  \begin{array}{c|cccc}
+    0        \\
+    1/2     & 1/2  \\
+    1/2     & 0  &  1/2  \\
+    1       & 0  &  0   & 1 \\
+    \hline
+    \,        & 1/6      & 1/3      &1/3     & 1/6
+  \end{array}
+\end{equation}
+
+\noindent
+In order to generate a solution for an ODE using the RK4 method, we have to express each $\xi_j, \quad j=1,2,3,4$. This is given by the formula 
+
+\begin{align*}
+\xi_v &= h \sum_{i=1}^{v-1}a_{vi}f(t_n + c_ih , \xi_i ) 
+\end{align*}
+
+\noindent
+Now we have 
+\begin{align}\label{xi1}\tag{1.3}
+\xi_1 &= y_n \\ \label{xi2}\tag{1.4}
+\xi_2 &= y_n + a_{21}h f (t_n, \xi_1 ) \\ \label{xi3}\tag{1.5}
+\xi_3 &= y_n + a_{31}h f (t_n, \xi_1 ) + a_{32}h f (t_n + c_2h, \xi_2 ) \\ \label{xi4}\tag{1.6}
+\xi_4 &= y_n + a_{41}h f(t_n, \xi_1 ) + a_{42}h f (t_n + c_2h, \xi_2 ) + a_{43}h f(t_n + c_3h, \xi_3 )  
+\end{align}
+
+\noindent
+The solution is given by
+\begin{align*}
+y_{n+1} &= y_n + h \sum_{j=1}^{v}b_jf(t_n + c_jh , \xi_j ) 
+\end{align*}
+
+\noindent
+For order 4, the solution is
+\begin{align*}
+y_{n+1} = y_n + h [(b_1f(t_n + c_1h , \xi_1 ) + (b_2f(t_n + c_2h , \xi_2 )+ (b_3f(t_n + c_3h , \xi_3 )+ (b_4f(t_n + c_4h , \xi_4 )]
+\end{align*}
+
+Now, comparing \ref{table1} and \ref{table2}, we have that 
+ 
+$
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3 \\
+b_4
+\end{bmatrix}
+$ = 
+$
+\begin{bmatrix}
+1/6 \\
+1/3 \\
+1/3 \\
+1/6
+\end{bmatrix}
+$
+\qquad and  \qquad 
+$
+\begin{bmatrix}
+0 \\
+c_2 \\
+c_3 \\
+c_4
+\end{bmatrix}
+$ =
+$
+\begin{bmatrix}
+0 \\
+1/2 \\
+1/2\\
+1
+\end{bmatrix}
+$
+
+\hspace{2pt}
+
+$ a_{2,1} = \frac{1}{2},\quad a_{3,1} = 0,\quad a_{3,2} = \frac{1}{2},\quad a_{4,1} = 0,\quad a_{4,2} = 0,\quad a_{4,3} = 1 $
+
+\hspace{2pt}
+Now substituting these values into \ref{xi1}, \ref{xi2}, \ref{xi3} and \ref{xi4}, we get
+\begin{align*}
+\xi_1 &= y_n \\ 
+&= hf(t_n , y_n) \\
+\xi_2 &= y_n + a_{21}h f (t_n, \xi_1 ) \\ 
+&= y_n + h\left( \frac{1}{2}\right) f(t_n,y_n) \\
+&= hf(t_n,y_n) + \frac{1}{2}hf(t_n,y_n) \\
+&= hf \left( t_n + \frac{h}{2}, y_n + \frac{\xi_1}{2} \right)  \\
+\xi_3 &= y_n + a_{31}h f (t_n, \xi_1 ) + a_{32}h f (t_n + c_2h, \xi_2 ) \\ 
+&= y_n + 0 + h\left( \frac{1}{2}\right) f\left( t_n + \frac{1}{2}h, \xi_2 \right)  \\
+&= hf(t_n,y_n) + \frac{1}{2}hf\left( t_n + \frac{1}{2}h, \xi_2 \right)  \\
+&= hf \left( t_n + \frac{h}{2}, y_n + \frac{\xi_2}{2} \right)  \\
+\xi_4 &= y_n + a_{41}h f(t_n, \xi_1 ) + a_{42}h f (t_n + c_2h, \xi_2 ) + a_{43}h f(t_n + c_3h, \xi_3 ) \\
+&= y_n + 0 + 0 + hf(t_n + h, \xi_3) \\
+&= hf(t_n,y_n) + hf(t_n + h, \xi_3) \\ 
+&= hf(t_n + h, y_n + \xi_3)  
+\end{align*}
+
+Therefore, the formula for solving $\xi_v$ for RK4, where $v=1,2,3,4$ is 
+\begin{align*}
+\xi_1 &= hf(t_n , y_n) \\
+\xi_2 &= hf \left( t_n + \frac{h}{2}, y_n + \frac{\xi_1}{2} \right) \\
+\xi_3 &= hf \left( t_n + \frac{h}{2}, y_n + \frac{\xi_1}{2} \right) \\
+\xi_4 &= hf(t_n + h, y_n + \xi_3)
+\end{align*}
+
+The solution is given by
+\begin{align*}
+y_{n+1} &= y_n + h [(b_1f(t_n + c_1h , \xi_1 ) + (b_2f(t_n + c_2h , \xi_2 )+ (b_3f(t_n + c_3h , \xi_3 )+ (b_4f(t_n + c_4h , \xi_4 )] \\
+&= y_n + h[\frac{1}{6}f(t_n + c_1h , \xi_1 )+ \frac{1}{3}f(t_n + c_2h , \xi_2) + \frac{1}{3}f(t_n + c_3h , \xi_3 ) + \frac{1}{6}f(t_n + c_4h , \xi_4 )] \\
+&= y_n + \frac{1}{6}h[f(t_n + c_1h , \xi_1 ) + 2f(t_n + c_2h , \xi_2 + 2f(t_n + c_3h , \xi_3 ) + f(t_n + c_4h , \xi_4 ]\\
+&= hf(t_n,y_n) + \frac{1}{6}h[f(t_n + c_1h , \xi_1 ) + 2f(t_n + c_2h , \xi_2 + 2f(t_n + c_3h , \xi_3 ) + f(t_n + c_4h , \xi_4 ]\\
+&= \frac{1}{6}h(\xi_1 + 2\xi_2 + 2\xi_3 + \xi_4)
+\end{align*}
+
+Now, we are asked to find $y$ for $0\leq t \leq 3$
+
+Since the step size is $0.5$, we will iterate $t$ on $\left[ 0,3 \right] $. This is given by 
+
+$t_0 = 0, \: t_1 =0.5,\: t_2 = 1,\: t_3 = 1.5,\: t_4 = 2,\: t_5 = 2.5 \: \text{and} \: t_6 = 3$
+
+\hspace{2pt}
+\noindent
+\textbf{Step 0:}
+
+$t_0 = 0, \quad y= 1 , \quad h= 0.5$
+
+\textbf{Step 1:}
+
+$ t_0 = 0, \quad y_0 = 1, \quad h=0.5 $
+\begin{align*}
+\xi_1 &= 0.5f(0,1) \\
+&= 0.5(3) = -1.5 \\
+\xi_2 &= 0.5f\left( 0 + \frac{0.5}{2}, 1 + \frac{-1.5}{2} \right)  \\
+&= 0.5f(0.25, 0.25) = -2.21875 \\
+\xi_3 &= 0.5f\left( 0 + \frac{0.5}{2}, 1 + \frac{-2.21875}{2}\right)  \\
+&= 0.5f(0.25, -0.109375) = -2.578125 \\
+\xi_4 &= 0.5f(0+ 0.5, 1 +(-2.578125)) \\
+&= 0.5f(0.5, -1.578125) = -3.953125\\
+y &= \frac{1}{6} \left[ -1.5 + 2(-2.21875) + 2(-2.578125) + -3.953125 \right] \\
+&= -2.5078125
+\end{align*}
+
+The approximation is given by 
+
+$ y_1 = y_0 + y = 1 + (-2.5078125) = -1.5078125$
+
+Hence, \quad $y(1) = -1.5078125$
+
+\textbf{Step 2:}
+
+$t_1 = 0.5, \quad y_1= -1.578125 \quad h=0.5 $
+\begin{align*}
+\xi_1 &= 0.5f(0.5,-1.578125) \\
+&= 0.5(-7.765625) = -3.8828125 \\
+\xi_2 &= 0.5f\left( 0.5 + \frac{0.5}{2}, (-1.578125) + \frac{-3.8828125}{2} \right)  \\
+&= 0.5f(0.75, -3.44921875) = -5.66796875 \\
+\xi_3 &= 0.5f\left( 0.5 + \frac{0.5}{2}, (-1.578125) + \frac{-5.66796875}{2}\right)  \\
+&= 0.5f(0.75, -4.341796875) = -6.560546875 \\
+\xi_4 &= 0.5f(0.5+ 0.5, 1 +(-6.560546875)) \\
+&= 0.5f(1, -8.068359375) = -10.06835938\\
+y &= \frac{1}{6} \left[ -3.8828125 + 2(-5.66796875) + 2(-6.560546875) + -10.0683593 \right] \\
+&= -6.401367188
+\end{align*}
+
+The approximation is given by 
+
+$ y_2 = y_1 + y = -1.5078125 + (-6.401367188) = -7.909179688$
+
+Hence, \quad $y(2) = -7.909179688$
+
+\textbf{Step 3:}
+
+$t_2 = 1, \quad y_2= -7.909179688 \quad h=0.5 $
+\begin{align*}
+\xi_1 &= 0.5f(1,-7.909179688) \\
+&= 0.5(-19.81835938) = -9.909179688 \\
+\xi_2 &= 0.5f\left( 1 + \frac{0.5}{2}, (-7.909179688) + \frac{-7.909179688}{2} \right)  \\
+&= 0.5f(1.25, -12.86376953) = -14.58251953 \\
+\xi_3 &= 0.5f\left( 1 + \frac{0.5}{2}, (-7.909179688) + \frac{-14.58251953}{2}\right)  \\
+&= 0.5f(1.25, -15.20043945) = -16.91918945 \\
+\xi_4 &= 0.5f(1 + 0.5, -7.909179688 +(-16.91918945)) \\
+&= 0.5f(1.5, -16.36877441) = -17.74377441\\
+y &= \frac{1}{6} \left[ -9.909179688 + 2(-14.58251953) + 2(-16.91918945) + -17.74377441 \right] \\
+&= -15.10939534
+\end{align*}
+
+The approximation is given by 
+
+$ y_3 = y_2 + y = -7.909179688 + (-15.10939534) = -23.01857503$
+
+Hence, \quad $y(3) = -23.01857503$
+
+\textbf{Step 4:}
+
+$t_3 = 1.5, \quad y_3= -23.01857503 \quad h=0.5 $
+\begin{align*}
+\xi_1 &= 0.5f(1.5,-23.01857503) \\
+&= 0.5(-48.78715006) = -24.39357503 \\
+\xi_2 &= 0.5f\left( 1.5 + \frac{0.5}{2}, (-23.01857503) + \frac{-24.39357503}{2} \right)  \\
+&= 0.5f(1.75, -35.21536255) = -36.18411255 \\
+\xi_3 &= 0.5f\left( 1.5 + \frac{0.5}{2}, (-23.01857503) + \frac{-36.18411255}{2}\right)  \\
+&= 0.5f(1.75, -41.11063131) = -42.07938131 \\
+\xi_4 &= 0.5f(1.5 + 0.5, -23.01857503 +(-42.07938131)) \\
+&= 0.5f(2, -65.09795634) = -65.59795634\\
+y &= \frac{1}{6} \left[ -24.39357503 + 2(-36.18411255) + 2(-42.07938131) + (-65.59795634) \right] \\
+&= -41.08641985
+\end{align*}
+
+The approximation is given by 
+
+$ y_4 = y_3 + y = -23.01857503 + (-41.08641985) = -64.10499488$
+
+Hence, \quad $y(4) = -64.10499488$
+
+\textbf{Step 5:}
+
+$t_4 = 2, \quad y_4= -64.10499488 \quad h=0.5 $
+\begin{align*}
+\xi_1 &= 0.5f(2,-64.10499488) \\
+&= 0.5(-129.2099898) = -64.60499488 \\
+\xi_2 &= 0.5f\left( 2 + \frac{0.5}{2}, (-64.10499488) + \frac{-64.60499488}{2} \right)  \\
+&= 0.5f(2.25, -192.7524846) = -96.37624232 \\
+\xi_3 &= 0.5f\left( 1.5 + \frac{0.5}{2}, (-64.10499488) + \frac{-96.37624232}{2}\right)  \\
+&= 0.5f(2.25, -112.293116) = -112.261866 \\
+\xi_4 &= 0.5f(2 + 0.5, -64.10499488 +(-112.261866)) \\
+&= 0.5f(2.5, -176.3668609) = -175.7418609 \\
+y &= \frac{1}{6} \left[ -64.60499488 + 2(-96.37624232) + 2(-112.261866) + (-175.7418609) \right] \\
+&= -109.6038454
+\end{align*}
+
+The approximation is given by 
+
+$ y_5 = y_4 + y = -64.10499488 + (-109.6038454) = -64.10499488$
+
+Hence, \quad $y(5) = -173.7088403$
+
+\textbf{Step 6:}
+
+$t_5 = 2.5, \quad y_5 = -173.7088403 \quad h=0.5 $
+\begin{align*}
+\xi_1 &= 0.5f(2.5,-173.7088403) \\
+&= 0.5(-346.1676806) = -173.0838403 \\
+\xi_2 &= 0.5f\left( 2 + \frac{0.5}{2}, (-173.7088403) + \frac{-173.0838403}{2} \right)  \\
+&= 0.5f(2.75, -260.2507605) = -258.9695105 \\
+\xi_3 &= 0.5f\left( 1.5 + \frac{0.5}{2}, (-173.7088403) + \frac{-258.9695105 }{2}\right)  \\
+&= 0.5f(2.75,-193.5897501) = -192.3085 \\
+\xi_4 &= 0.5f(2.5 + 0.5, -173.7088403 +(-192.3085)) \\
+&= 0.5f(3, -256.4134949) = -254.4134949 \\
+y &= \frac{1}{6} \left[ -173.0838403 + 2(-258.9695105) + 2(-192.3085) + (-254.4134949) \right] \\
+&= -254.4134949
+\end{align*}
+
+The approximation is given by 
+
+$ y_6 = y_5 + y = -173.7088403 + (-254.4134949) = -64.10499488$
+
+Hence, \quad $y(6) = -396.3843997$
+
+Exact Solution
+
+\begin{equation*}
+\frac{dy}{dt} = 2y + t^2 - 5
+\end{equation*}
+\begin{center}
+$ y(0)=1 $ \qquad
+\end{center}
+
+Using the method of integrating factors,
+
+\begin{equation}\label{eqtn5}\tag{5}
+y^\prime + p(x)y = q(x) 
+\end{equation}
+
+Integrating factor(I.F): $\mu = e^{\int p(t)dt} = e^{-\int 2)dt} = e^{-2t}$
+
+Now, comparing \ref{eqtn5}to the question, we have $p(x) = -2$ and $q(x) = t^2 - 5$
+
+\begin{align*}
+\frac{dy}{dt} - 2y &= t^2 -5\\
+\text{Multiplying through by the integrating factor, we have}\\
+e^{-2t}\frac{dy}{dt} - e^{-2t}2y &= e^{-2t}\left( t^2 -5\right) \\
+\frac{dy}{dt}\left[e^{-2t}y\right] = e^{-2t}\left( t^2 -5\right) \\
+e^{-2t}y = \int e^{-2t}\left( t^2 -5\right) dt \\
+y = \frac{1}{e^{-2t}}\int e^{-2t}\left( t^2 -5\right) dt \\
+y = \frac{1}{e^{-2t}} \left(  \frac{-1(e^{-2t} t^2)}{2} - \frac{-1(e^{-2t} t)}{2} + \frac{9}{4}+ \frac{c_1}{e^{-2t}} \right) \\
+y = \frac{-1 t^2}{2} + \frac{-1 t}{2} + \frac{9}{4} + \frac{c_1}{e^{-2t}} \\
+\end{align*}
+
+when $t_0 = 0, \quad y_0 = 1$
+
+\begin{align*}
+y(t) &= \frac{-t^2}{2} - \frac{t}{2} + \frac{9}{4} + c_1 e^{2t} \\
+1 &= \frac{9}{4} + c_1 \\
+c &= 1 - \frac{9}{4} \quad = -1.25
+\end{align*}
+
+So, the equation is given by 
+\begin{align*}
+y(t) &= \frac{-t^2}{2} - \frac{t}{2} + \frac{9}{4} - 1.25 
+\end{align*}
+
+$ t_0 = 0, \quad y_0 = 1 $
+
+
+
+\end{solution}
+
+\end{document}
+

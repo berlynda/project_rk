@@ -1,0 +1,1443 @@
+\documentclass[12pt,a4paper]{article}
+%----------------------Packages----------------------------
+% \usepackage[a4paper,margin=1in,footskip=0.25in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{tikz}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}{Question}[theorem]
+\newtheorem{example}[theorem]{Example}
+\usetikzlibrary{calc}
+\usepackage{xcolor,color,colortbl}
+%\usepackage{hyperref}
+
+% ----------x----------Packages ----------x----------------
+
+\begin{document}
+
+% ---------------- Page1 - Title ---------------------------
+\title{Mathematical modeling of satellite orbit using the Embedded Runge-Kutta method \\{\normalsize Project submitted in partial fulfilment of the requirement for the degree of Bachelor of Arts in Mathematics}}
+
+\author{Belinda Attuabea Adjei \\ \vspace{7pt} {\normalsize Department of Mathematics} \\ University of Ghana \\ Legon. \\ {\includegraphics[width=4cm]{download1}}}
+\date{1st April, 2021}
+\maketitle
+% --------x------- Page1 - Title -----------x-------------
+
+\newpage
+
+\tableofcontents{}
+
+\newpage
+
+%--------------------Abstract-----------------------------
+\begin{abstract}
+This project seeks to make meaningful contribution to the growing catalog of spacecraft
+flight dynamics and navigation. The motivation for this project stems from the need for
+accurate mathematical models which have the potential to improve the computational
+performance of existing numerical simulations. As the number of objects orbiting Earth
+is estimated to increase significantly in the near future, it becomes necessary to obtain a
+physical model that accurately assigns spacecrafts unique orbits to prevent collisions.
+
+This project will focus on deriving a mathematical model from elementary Calculus
+by using the Kepler’s laws of planetary motion and the Newton’s laws of motion. By
+making necessary assumptions, a system of second order coupled differential equations of
+the form
+
+\begin{equation}\tag{1} \label{eqn1}
+\begin{split}
+ x^{\prime \prime } + \alpha y^\prime = F (x, m_1, m_2, d_1, d_2 ) \\
+ y^{\prime \prime } + \beta x^\prime = G (y, m_1, m_2, d_1, d_2 )
+\end{split} 
+\end{equation}
+
+\noindent
+where $(x, y)$ is the position of the satellite, $m_1$ is the mass of the earth, $m_2$ is the mass of
+the moon, $d_1$ denotes the distance of the satellite to the earth, $d_2$ denotes the satellite’s
+distance to the moon and $\alpha$ and $\beta$ are constants.
+
+One of the main goals of the project is to convert the second order differential equations
+given in $(\ref{eqn1})$ into a system of four first order differential equations by using the following
+substitution
+
+\begin{equation}\tag{2} \label{eqn2}
+\begin{split}
+ x^\prime = u \\
+ y^\prime = v
+ \end{split}
+\end{equation}
+
+\noindent
+The next task will focus on finding a numerical solution of the system of four first order
+differential equations using the Embedded Runge-Kutta method. An algorithm will be
+written in Python to start a simulation of the satellite from a carefully chosen initial position (initial conditions). For the satellite not to crash into the Moon
+or the other spacecrafts, it has to reach the desired position at the right speed. The
+student will calculate the right speed that will ensure that the orbit to be determined
+will be closed curves. It will also be shown by a simulated result that if the orbit is not
+computed with high accuracy, the satellite will crash out of its trajectory which will lead
+to a possible collision with other spacecrafts.
+\end{abstract}
+
+%-------------x---------Abstract----------x---------------
+
+\newpage
+
+\section{Runge-Kutta Methods}
+
+\subsection{Gaussian Quadrature}
+
+The process of Gaussian quadrature is finding areas under curves.
+
+\noindent
+\textbf{Quadrature} - replacing an integral with finite sum.
+\noindent
+
+The exact solution of the trivial ordinary differential equation (ODE) 
+
+\begin{equation}\tag{1.1}\label{eqn1.1}
+y^\prime = f(t), \quad t\geq 0, \quad y(t_0) = y_0
+\end{equation}
+
+\begin{align*}
+dy &= f(t)dt \\
+\int dy &= \int f(t)dt \\
+\int_{t_0}^t dy(\tau)d\tau &= \int_{t_0}^t f(\tau)d\tau \\
+y(\tau)\vert_{t_0}^t &= y(t_0) + \int_{t_0}^t f(\tau)d\tau \\
+\text{Hence, the exact or analytic solution is given by } \\
+y(t) = y(t_0) + \int_{t_0}^t f(\tau)d\tau 
+\end{align*}
+
+\subsubsection{Numerical Calculation of Integrals}
+
+Let $\omega$ be a non negative function such that $0 < \int_a^b \omega(\tau) d\tau < \infty$ and $\left| \int_a^b \tau^j\omega (\tau) d\tau \right| < \infty $,\quad
+$j = 1,2,3, ... $  and $\omega = \text{weight functions}$ 
+
+\begin{align*}
+y(\tau)\vert_{t_0}^t &= y(t_0) + \int_{t_0}^t f(\tau)d\tau  \text{ is the exact solution} \\
+y(t_n) &= y_0 + \sum_{j=1}^n \text{...} \quad \text{is the approximates}
+\end{align*}
+
+\noindent
+\textbf{Procedure} : Approximate the integral by a finite sum.
+
+\begin{equation}\tag{1.2}\label{eqn1.2}
+\int_a^b f(\tau)\omega(\tau)d\tau \thickapprox \sum_{j=1}^nb_jf(c_j)
+\end{equation}
+
+\noindent
+where $b_j$ is the quadrature weights and $c_j$ is the quadrature nodes
+
+\noindent
+Suppose that the quadrature matches the integral exactly whenever is a degree of $p-1$ \vspace{5pt}
+Suppose that $f$ has $p$ smooth derivatives. \vspace{5pt}
+It can be shown that \vspace{5pt}
+
+\begin{equation*}
+\left| \int_a^b f(\tau)\omega(\tau)d\tau - \sum_{j=1}^nb_jf(c_j) \right| \leq c_{a \leq t \leq b}^{max}\left| f ^{(p)}(t)\right|  
+\end{equation*}
+
+\noindent
+where $c>0$ is independent of f. This is the quadrature formula of order p.
+
+\noindent
+Let $P_m$ be a set of all real polynomials of degree $m$.
+In this case we are considering real numbers. Of course, we can use complex numbers because all real numbers are complex but for simplicity, we will assume the imaginary part is $0$.
+
+\begin{lemma}
+Given a distinct set of nodes $c_j$ there exist a unique set of weights $b_j$ where $j\geq 1$
+$\int_a^bf(\tau)\omega(\tau)d\tau \thickapprox \sum_{j=1}^nb_jf(c_j)$ is of order $p \geq n$.
+\end{lemma}
+
+\begin{proof}
+Let $\mathbb{P}_{n-1}$ be a set of real polynomials of degree $n-1$
+
+\noindent
+\textit{Claim1:} $\mathbb{P}_{n-1}$ is a linear space
+
+$\forall f,g \epsilon$ $\mathbb{P}_{n-1}$ and $\lambda \epsilon$ $\mathbb{R}$
+
+$f + g \epsilon$ $\mathbb{P}_{n-1}$
+
+$\lambda f \epsilon$ $ \mathbb{P}_{n-1}$
+
+\noindent
+\textit{Claim2:} The set $\lbrace 1,t,t^2,\ldots, t_{n-1}\rbrace$ is a basis for $\mathbb{P}_{n-1}$
+
+\noindent
+The order condition
+
+\begin{align*}
+\sum_{j=1}^n b_jc_j^m &= \int_a^b\tau^m \omega(\tau)d\tau \\
+f\epsilon \mathbb{P}_{n-1} \Rightarrow f(c_j) &= c_j^m  \quad where \quad m = 0,1,2,..., n-1 \\
+\int_a^b f(\tau)\omega(\tau)d\tau &\thickapprox \sum_{j=1}^nb_jf(c_j)
+\end{align*}
+
+\noindent
+
+\begin{align*}
+b_1c_1^m + b_2c_2^m + ... + b_nc_n^m &= \int_a^b\tau^m \omega(\tau)d\tau \\
+&= \begin{pmatrix}
+b_1c_1^m = b_1 + b_1c_1^1 + b_1c_1^2 + ... + b_1c_1^{n-1} \\
+b_1c_1^m = b_1 + b_1c_1^1 + b_1c_1^2 + ... + b_1c_1^{n-1} \\
+\vdots     \\       
+b_nc_n^m = b_n + b_nc_n^1 + b_nc_n^2 + ... + b_nc_n^{n-1}
+\end{pmatrix} \\
+&= \begin{pmatrix} 
+b_1 + b_1c_1^1 + b_1c_1^2 + \ldots + b_1c_1^{n-1} \vspace{5pt} \\
+b_2 + b_2c_2^1 + b_2c_2^2 + \ldots + b_2c_2^{n-1} \vspace{5pt} \\
+\vdots \vspace{5pt} \\
+b_n + b_nc_n^1 + b_nc_n^2 + \ldots + b_nc_n^{n-1}
+\end{pmatrix} \\
+&=\begin{pmatrix}
+\int_a^b \omega (\tau) d \tau \vspace{5pt} \\
+\int_a^b \tau \omega (\tau) d \tau \vspace{5pt} \\
+\vdots \vspace{5pt} \\
+\int_a^b \tau_{n-1} \omega (\tau) d \tau 
+\end{pmatrix} \\
+&= \begin{pmatrix}
+b_1, b_2, \ldots , b_n
+\end{pmatrix}
+\begin{pmatrix}
+1& c_1^1&c_1^2&\cdots&c_1^{n-1}\\
+1& c_2^1&c_2^2&\cdots&c_2^{n-1}\\
+\qquad  \vdots\\
+1& c_n^1&c_n^2&\cdots&c_n^{n-1}\\
+\end{pmatrix}
+\end{align*}
+
+\end{proof}
+
+\noindent
+$A$ is a non singular matrix  since $det(A) \neq 0$. This means that the system has a unique solution since $c_j$ are distinct. This implies that the quadrature is of order $p \geq n$.
+
+\noindent
+Define the Lagrange Polynomials
+
+$$P_j(t) = \prod_{k=1}^n \frac{t - c_k }{c_j - c_k } \qquad k\neq j  \qquad j = 1,2, \ldots , n$$
+
+\[
+P_j(t) =
+\begin{cases}
+0
+& \text{if } k = j,\\
+1 & \text{if } k \neq j.
+\end{cases}
+\]
+
+\noindent
+For every interpolation polynomial of degree $n-1$, the Lagrange interpolation formula is 
+
+\begin{align*}
+\sum_{j=1}^n P_j(\tau)g(c_j) &= g(t)  \qquad t \: \epsilon \: [a,b] \\
+\sum_{j=1}^n P_j(\tau)g(c_j) \omega(\tau)  &=  g(\tau)\omega(\tau) 
+\end{align*}
+
+\noindent
+Now, taking integral of both sides on $ [a,b] $, we have
+
+\begin{align*}
+\int_a^b \sum_{j=1}^n P_j(\tau)g(c_j) \omega(\tau) d(\tau)  &=  \int_a^b g(\tau)\omega(\tau) d(\tau) \\
+\sum_{j=1}^n \int_a^b P_j(\tau)g(c_j) \omega(\tau) d(\tau)  &=  \int_a^b g(\tau)\omega(\tau) d(\tau) \\
+&= \sum_{j=1}^n \int_a^b P_j(\tau)\omega(\tau) d(\tau)c_j \\ 
+&=\sum_{j=1}^n \int_a^b P_j(\tau)\omega(\tau) d(\tau)c_j \\
+&= \int_a^b \tau^m \omega(\tau)d\tau \\
+\therefore \: b_j &= \int_a^b \tau^m \omega(\tau)d\tau   \qquad j = 1,2,\ldots , n
+\end{align*}
+
+\subsection{Explicit Runge-Kutta Schemes}
+
+To extend the quadrature formula to the (ODE) 
+
+$ y^\prime = f ( t,y ) , \qquad t\geq 0, \qquad y( t_0) $
+
+\vspace{3pt}
+\noindent
+The basic form of Runge-Kutta methods uses quadrature to integrate from $ t_n \quad  \text{to} \quad t_{n+1} = t_n + h $
+
+$ y^\prime = f(t) $
+
+\noindent
+Solve on $ [t_n , t_{n+1} ] $
+
+\begin{align*}
+\int_{t_n}^{t_{n+1}} y^\prime d\tau &= \int_{t_n}^{t_{n+1}} f(t) d\tau \\
+y({t_{n+1}}) - y(t_n) &=  \int_{t_n}^{t_{n+1}} f(t) d\tau \\
+y({t_{n+1}})  &= y(t_n) + \int_{t_n}^{t_{n+1}} f(t) d\tau \\
+y_{n+1} &= y_n + \int_{t_n}^{t_{n+1}} f(t) d\tau \\
+\end{align*}
+
+Mean Value Theorem 
+
+\begin{tikzpicture}[thick]
+  \path ( 1,4)        node[coordinate] (a1) {}
+        (10,5)        node[coordinate] (b1) {}
+        (a1) ++(0,-2) node[coordinate] (a2) {}
+        (b1) ++(0,-2) node[coordinate] (b2) {};
+
+  \path[draw,green] (a1) -- (b1);
+
+  \path[draw,red] (a2) --
+    node[coordinate,pos=0.05] (c1) {}
+    node[coordinate,pos=0.2 ] (c2) {}
+    node[coordinate,pos=0.4 ] (c3) {}
+    (b2);
+
+  \draw[densely dashed] (a1)
+    .. controls +(0,0) and  (c1)   .. (c2)
+    .. controls  (c3)  and +(-2,2) .. (b1);
+
+  \foreach \point/\text in {a1/a , b1/b , c2/c}
+    \draw[dotted]
+        let \p1 = (\point)
+      in
+           (0  ,\y1) node[anchor=east ] {$f(\text)$}
+        -- (\p1)
+        -- (\x1,0  ) node[anchor=north] {$\text$};
+
+  \draw[->] (-1.5, 0  ) -- (11,0  ) node[anchor=south east] {\textsf{x}};
+  \draw[->] (   0,-1.5) -- ( 0,6.5) node[anchor=north west] {\textsf{y}};
+
+\end{tikzpicture}
+
+\begin{align*}
+y(t_{n+1}) - y(t_n) &= ( t_{n+1} - t_n ) y^\prime (c) \\
+y(t_{n+1})  &= y(t_n) + ( t_{n+1} - t_n ) y^\prime (c) \\
+\text{but} \: t_{n+1} &= t_n + h \\
+\therefore t_{n+1} - t_n &= t_n + h - t_n = h \\ 
+y_{n+1} &= y_n + hf(t_n, y(t_n)) \\
+y_{n+1} &= y_n + chf(c, y(c)) 
+\end{align*}
+
+\begin{center}
+$
+\tikz \draw[help lines, step=1]
+(0, 0) grid (4, 4);
+$
+\end{center}
+
+\begin{align*}
+y(t_{n+1}) &= y(t_n) + h \int_0^1 f(t_n + h\tau , y(t_n + h\tau )) d\tau \\
+y_{n+1} &= y_n + h \sum_{j=1}^v b_jf(t_n + c_jh , y(t_n + c_jh ))\\
+y(t_n) &= y_n \\
+y(t_{n+1}) &= y_{n+1}
+\end{align*}
+
+\noindent
+\textbf{Approximation}
+
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + a_{21}h f (t_n, \xi_1 ) \\
+\xi_3 &= y_n + a_{31}h f (t_n, \xi_1 ) + a_{32}h f (t_n + c_2h, \xi_2 ) \\
+\xi_4 &= y_n + a_{41}h f(t_n, \xi_1 ) + a_{42}h f (t_n + c_2h, \xi_2 ) + a_{43}h f(t_n + c_3h, \xi_3 ) \\
+&\vdots \\
+\xi_v &= h \sum_{i=1}^{v-1}a_{vi}f(t_n + c_ih , \xi_i ) \\
+y_{n+1} &= y_n + h \sum_{j=1}^{v}b_jf(t_n + c_jh , \xi_j ) 
+\end{align*}
+
+\noindent
+The quadrature nodes $\lbrace{c_j}\rbrace_{j=1}^v$ , weights $\lbrace{b_j}\rbrace_{j=1}^v$, and entries of the integration matrix $A_{i,j}$, called the RK matrix are typically displayed in a Butcher tableau,
+
+\begin{equation*}
+\begin{array}{c|c}
+c  &  A(a_{ij}) \\
+\hline 
+\, & b^T
+\end{array}
+\end{equation*}
+
+which expands to 
+
+\begin{equation*}
+  \begin{array}{c|cccc}
+    0        \\
+    c_2       & a_{2,1}  \\
+    \vdots    & \vdots   &  \ddots  \\
+    c_v       & a_{v,1}  &   \dots   & a_{v,v} \\
+    \hline
+    \,        & b_1      & b_2       &\dots     & b_v
+  \end{array}
+\end{equation*}
+
+
+where $b_j$ = 
+$
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+\vdots \\
+b_v
+\end{bmatrix}
+$
+\qquad and  \qquad $c_j$ =
+$
+\begin{bmatrix}
+c_1 \\
+c_2 \\
+\vdots \\
+c_v
+\end{bmatrix}
+$
+
+are the RK weights and RK nodes respectively. 
+
+\subsubsection{Examples}
+
+Given an Explict Runge-Kutta form of order 2 in the Butcher's tableau below, we want to find the solution.
+
+1. 
+\begin{equation*} 
+  \begin{array}{c|cc}
+    0     \\
+    2/3     &2/3   \\
+    \hline
+    \vspace{2pt}
+    \,  & 1/4  & 3/4
+  \end{array}
+\end{equation*}
+
+$\qquad \textbf{Solution}$
+
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + h\sum_{i=1}^2 a_{21} f(t_n + c_ih , \xi_i) 
+\end{align*}
+
+Now, substituting 
+
+\begin{align*}
+\xi_2 &= y_n + h(\frac{2}{3} f(t_n + 0 , \xi_1 )) \\
+&= y_n + (\frac{2h}{3} f(t_n , \xi_1 )\\
+y_{n+1} &= y_n + h [(\frac{1}{4} f (t_n + 0, \xi_1 ) + \frac{3}{4}f(t_n + \frac{2}{3}h , \xi_2 )] \\ 
+&= y_n + \frac{h}{4} f (t_n , \xi_1 ) + \frac{3}{4}f(t_n + \frac{2h}{3} , \xi_2 )
+\end{align*}
+
+\begin{equation*}
+  \begin{array}{c|cc}
+    0     \\
+    1     &1  \\
+    \hline
+    \vspace{2pt}
+    \,  & 1/2  & 1/2
+  \end{array}
+\end{equation*}
+
+$\textbf{Solution}$
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + h\sum_{i=1}^2 a_{21} f(t_n + c_ih , \xi_i \\ 
+\quad   &= y_n + h( f(t_n + 0 , \xi_1 )) \\
+&= y_n + h f(t_n , \xi_1 ) \\
+y_{n+1} &= y_n + h [(\frac{1}{2} f (t_n + 0, \xi_1 ) + \frac{1}{2}f(t_n + h , \xi_2 )] \\
+&= y_n + \frac{h}{2} f (t_n , \xi_1 ) + \frac{1}{2}f(t_n + h , \xi_2 )  
+\end{align*}
+
+\begin{center}
+\begin{tabular}{c|cccc}
+0\\
+1/2&1/2\\
+1/2&0&1/2\\
+1&0&0&1\\
+\hline
+&1/6&2/6&2/6&1/6
+\end{tabular}
+\end{center}
+
+\noindent
+From the above table, we want to find weights 
+
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= h \sum_{i=1}^{1}a_{2i}f(t_n + c_ih , \xi_i ) \\
+&= y_n + h (\frac{1}{2}f(t_n + \frac{1}{2}h, \xi_1) + 0 \\
+&= y_n + \frac{h}{2}f(t_n + \frac{h}{2}, \xi_1) \\
+\xi_3 &= h \sum_{i=1}^{2}a_{3i}f(t_n + c_ih , \xi_i ) \\
+&= y_n + h (0) f(t_n,\xi_1) + h (\frac{1}{2})f(t_n + \frac{1}{2}, \xi_2) \\
+&= y_n + h f(t_n + \frac{h}{2}, \xi_2) \\
+\xi_4 &= h \sum_{i=1}^{3}a_{3i}f(t_n + c_ih , \xi_i ) \\
+&= y_n + h (0) f(t_n + 0h ,\xi_1) + h(0)f(t_n + \frac{1}{2}h ,\xi_2) + h(1)f(t_n + \frac{1}{2}h ,\xi_3) \\
+&= y_n + h f(t_n + \frac{h}{2}, \xi_3) 
+\end{align*}
+
+The solution to the method above is 
+\begin{align*}
+\begin{split}
+y_{n+1}  &= y_n + h \sum_{j=1}^{4}b_jf(t_n + c_jh , \xi_j )\\
+&= y_n + h [(b_1f(t_n + c_1h , \xi_1 ) + (b_2f(t_n + c_2h , \xi_2 )+ (b_3f(t_n + c_3h , \xi_3 ) \\
+&\hspace{1cm}+ (b_4f(t_n + c_4h , \xi_4 )] \\
+&= y_n + h [\frac{1}{6} f(t_n + 0h , \xi_1 ) + (\frac{2}{6}f(t_n + \frac{1}{2}h , \xi_2 )+ (\frac{2}{6}f(t_n + \frac{1}{2}h , \xi_3 ) \\
+&\hspace{1cm} + (\frac{1}{6}f(t_n + (1)h , \xi_4 )] \\
+&= y_n + \frac{h}{6} f(t_n , \xi_1 ) + (\frac{h}{3}f(t_n + \frac{h}{2} , \xi_2 )+ (\frac{h}{3}f(t_n + \frac{h}{2} , \xi_3 )+ (\frac{h}{6}f(t_n + h , \xi_4 )
+\end{split} 
+\end{align*}
+
+\begin{center}
+\begin{tabular}{c|cccc}
+0\\
+1/3&1/3\\
+2/3&-1/3&1\\
+1&1&-1&1\\
+\hline
+&1/8&3/8&3/8&1/8
+\end{tabular}
+\end{center}
+
+From the above table, we want to find weights 
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= h \sum_{i=1}^{1}a_{2i}f(t_n + c_ih , \xi_i ) \\
+&= y_n + h (\frac{1}{3}f(t_n +(0)h, \xi_1) \\
+&= y_n + \frac{h}{3}f(t_n, \xi_1) \\
+\xi_3 &= h \sum_{i=1}^{2}a_{3i}f(t_n + c_ih , \xi_i ) \\
+&= y_n + h (0) f(t_n,\xi_1) + h (\frac{1}{2})f(t_n + \frac{1}{2}, \xi_2) \\
+&= y_n - f(t_n, \xi_2)+ h f(t_n +\frac{h}{3}, \xi_2) \\
+\xi_4 &= h \sum_{i=1}^{3}a_{3i}f(t_n + c_ih , \xi_i ) \\
+&= y_n + h (0) f(t_n + 0h ,\xi_1) + h(0)f(t_n + \frac{1}{2}h ,\xi_2) + h(1)f(t_n + \frac{1}{2}h ,\xi_3)\\
+&= y_n + h f(t_n + \frac{h}{2}, \xi_3) 
+\end{align*}
+
+The solution to the method above is given by 
+\begin{align*}
+y_{n+1} &= y_n + h \sum_{j=1}^{4}b_jf(t_n + c_jh , \xi_j ) \\
+&= y_n + h [(b_1f(t_n + c_1h , \xi_1 ) + (b_2f(t_n + c_2h , \xi_2 )+ (b_3f(t_n + c_3h , \xi_3 ) \\
+&\hspace{1cm} + (b_4f(t_n + c_4h , \xi_4 )] \\
+& = y_n + h [\frac{1}{6} f(t_n + 0h , \xi_1 ) + (\frac{2}{6}f(t_n + \frac{1}{2}h , \xi_2 )+ (\frac{2}{6}f(t_n + \frac{1}{2}h , \xi_3 ) \\
+&\hspace{1cm} + (\frac{1}{6}f(t_n + (1)h , \xi_4 )] \\
+&= y_n + \frac{h}{6} f(t_n , \xi_1 ) + (\frac{h}{3}f(t_n + \frac{h}{2} , \xi_2 )+ (\frac{h}{3}f(t_n + \frac{h}{2} , \xi_3 )+ (\frac{h}{6}f(t_n + h , \xi_4 ) 
+\end{align*}
+
+\subsection{Derivation of the Explicit Runge-Kutta formula}
+
+The scheme supporting the Runge-Kutta explicit methods is to express each weight $(\xi_j, j=1,...,v)$  by updating $y_n$ with a linear combination of $ f(t_n + hc_2),...,f(t_n+c_{j-1}h,\xi_{j-1}).$ Precisely, we let
+
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + ha_{2,1}f(t_n,\xi_1) \\
+\xi_3 &= y_n + ha_{3,1}f(t_n,\xi_1)+ha_{3,2}f(t_n,\xi_2)\\\vdots \\
+\xi_v &= h \sum_{i=1}^{v-1}a_{vi}f(t_n + c_ih , \xi_i ) \\
+y_{n+1} &= y_n + h \sum_{j=1}^{v}b_jf(t_n + c_jh , \xi_j )
+\end{align*}
+
+\subsubsection{One-stage formula}
+
+Let us consider the case of order 1
+
+\begin{align*}
+\xi_1 &= y_n \\
+y_{n+1} &= y_n + hb_1f(t_n, \xi_1) + hb_2f(t_n + c_2h , \xi_2)
+\end{align*}
+ 
+$$y(t_n + 1) = y(t_n + h)$$
+\noindent
+Using the Taylor formula to expand the above equation, we have
+
+$$y(t_n + 1) = y(t_n)+ hy^\prime (t_n) + \mathcal{O}(h^2) $$
+
+Now from equation $\ref{eqn1.1}$
+
+$$y^\prime = f(t_n, y_n)$$
+
+Thus,
+ 
+$$ y(t_n + 1) = y(t_n)+ h f(t_n, y_n) + \mathcal{O}(h^2)$$
+
+\noindent
+Runge Kutta method of order 1 is equivalent to the Euler's method.
+
+\subsubsection{Two-stage formula}
+Two stage formula is of the form
+
+\begin{equation*}
+  \begin{array}{c|cccc}
+    0       \\
+    c_2       & a_{2,1}  \\
+    \hline
+    \,        & b_1      & b_2  
+  \end{array}
+\end{equation*}
+
+\begin{align*}
+\begin{split}
+\xi_v &= h \sum_{i=1}^{v-1}a_{vi}f(t_n + c_ih , \xi_i ) \\
+y_{n+1} &= y_n + h \sum_{j=1}^{v}b_jf(t_n + c_jh , \xi_j )\\
+\xi_1 &= y_n \\
+\xi_2 &= y_n + ha_{21}f(t_n, \xi_1) \\
+y_{n+1} &= y_n + hb_1f(t_n, \xi_1) + hb_2f(t_n + c_2h , \xi_2) \\
+f(t_n + c_2h, \xi_2) &= f(t_n + c_2h, y_n + ha_{21}f(t_n, y_n) \\
+&= {f(t_n,y_n) + c_2h \frac{\partial f(t_n,y_n)}{\partial t} + ha_{21}f(t_n,y_n)\frac{\partial f(t_n,y_n)}{\partial y}} \\
+&= {f(t_n,y_n) + h[ c_2 \frac{\partial f(t_n,y_n)}{\partial t} + a_{21}f(t_n,y_n)\frac{\partial f(t_n,y_n)}{\partial y} ] } 
+\end{split}
+\end{align*}
+
+Hence,
+
+\begin{align*}\label{eqtn 1.2.1}
+\begin{split}
+y_{n+1} = y_n + h(b_1 + b_2)f(t_n, y_n ) + h^2( c_2 \frac{\partial f(t_n,y_n)}{\partial t} \\
+\hspace{1cm} + a_{21}f(t_n,y_n)\frac{\partial f(t_n,y_n)}{\partial y} )  + \mathcal{O}(h^3) 
+\end{split}
+\end{align*}
+
+\begin{align*}
+\begin{split}
+y_{n+1} &= y_n + hb_1f(t_n, y_n ) + hb_2[{f(t_n,y_n) + h( c_2 \frac{\partial f(t_n,y_n)}{\partial t} + a_{21}f(t_n,y_n)\frac{\partial f(t_n,y_n)}{\partial y} )]} + \mathcal{O}(h^2) \\
+&= y_n + hb_1f(t_n, y_n ) + hb_2f(t_n,y_n) + h^2( c_2 \frac{\partial f(t_n,y_n)}{\partial t} + a_{21}f(t_n,y_n)\frac{\partial f(t_n,y_n)}{\partial y} ) + \mathcal{O}(h^3) \\
+&= y_n + h(b_1 + b_2)f(t_n, y_n ) + h^2( c_2 \frac{\partial f(t_n,y_n)}{\partial t} + a_{21}f(t_n,y_n)\frac{\partial f(t_n,y_n)}{\partial y} )  + \mathcal{O}(h^3) \\
+\end{split}
+\end{align*}
+
+$ y(t_n + 1) = y(t_n + h) $
+
+Using the Taylor formula to expand the above equation, we have  
+
+$ y(t_n + 1) = y(t_n)+ hy^\prime (t_n) + \frac{h^2}{2!}y^{\prime\prime} (t_n) + \mathcal{O}(h^3)  $
+
+Now, 
+
+\begin{align*}
+y^\prime &= f(t_n, y_n) \\
+y^{\prime\prime} &= \frac{\partial f(t_n, y_n)}{\partial t} + \frac{\partial f(t_n, y_n)}{\partial y}\frac{\partial y}{\partial t} \\
+&= \frac{\partial f(t_n, y_n)}{\partial t} + \frac{\partial f(t_n, y_n)}{\partial t}f(t_n, y_n) 
+\end{align*}
+
+Thus, 
+\begin{equation}\tag{1.2.2}\label{eqtn1.2.2}
+y(t_n + 1) = y(t_n) hf(t_n, y_n) + h^2[\frac{1}{2} \frac{\partial f(t_n, y_n)}{\partial t} + \frac{1}{2} \frac{\partial f(t_n, y_n)}{\partial t}f(t_n, y_n)] + \mathcal{O}(h^3)
+\end{equation}
+  
+Comparing coefficients of equations \ref{eqth 1.2.1} and \ref{eqtn1.2.2} we get,
+\begin{align*}
+b_1 + b_2 &= 1 \\ 
+c_2 &= \frac{1}{2} \\
+a_{21} &= \frac{1}{2} 
+\end{align*}
+
+The Butcher tableau for the above is
+
+\begin{equation*}
+  \begin{array}{c|cc}
+    0     \\
+    1/2     &1/2  \\
+    \hline
+    \vspace{2pt}
+    \,  & 0  & 1
+  \end{array}
+\end{equation*}
+
+Other popular choices of parameters derived by some Mathematicians are 
+
+\begin{equation*}
+  \begin{array}{c|cc}
+    0     \\
+    1     &1 \\
+    \hline
+    \vspace{2pt}
+    \,  & 1/2  & 1/2
+  \end{array}
+\end{equation*}
+$ \qquad $
+\begin{equation*}
+  \begin{array}{c|cc}
+    0     \\
+    2/3     &2/3  \\
+    \hline
+    \vspace{2pt}
+    \,  & 1/4  & 3/4
+  \end{array}
+\end{equation*}
+
+\subsubsection{Three-stage formula}
+
+Three stage formula is of the form
+
+\begin{equation*}
+  \begin{array}{c|ccc}
+    0       \\
+    c_2       & a_{2,1}  \\
+    c_3    & a_{3,1}   &  a_{3,2}  \\
+    \hline
+    \,        & b_1      & b_2     & b_3
+  \end{array}
+\end{equation*}
+
+Let us consider the case of order 3, i.e v=3
+
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + ha_{21}f(t_n, \xi_1) \\
+\xi_3 &= y_n + ha_{31}f(t_n, \xi_1) + ha_{32}f(t_n, \xi_1) \\
+y_{n+1} &= y_n + hb_1f(t_n, \xi_1) + hb_2f(t_n + c_2h , \xi_2) + hb_3f(t_n + c_3h , \xi_3) 
+\end{align*}
+
+\begin{align*}
+\begin{split}
+f(t_n + c_3h, \xi_3) &= f(t_n + c_3h, y_n + ha_{31}f(t_n, y_n) + ha_{32}f(t_n + c_2h, y_n) \\
+&=f + c_3hf_t + ha_{31} ( f + ha_{32}[ f + h (c_2 f_t + a_{21} f_yf ] f_y + \mathcal{O}(h^2) \\
+&= f + c_3h f_t +  ha_{31} ff_y + ha_{32}ff_y + h^2 a_{32}c_2 f_t f_y + h^2a_{32}a_{21} f_yf_y + \mathcal{O}(h^3)\\
+&= f + c_3hf_t +  ha_{31} ff_y + ha_{32}ff_y + h^2 a_{32}c_2 f_t f_y + h^2a_{32}a_{21}f_y^2 + \mathcal{O}(h^3)\\
+&= f + h[ c_3 f_t + a_{31} ff_y + a_{32}ff_y ] + h^2 [a_{32}c_2 f_t f_y + a_{32}a_{21} f_y^2] + \mathcal{O}(h^3) 
+\end{split}
+\end{align*}
+
+\begin{align*}
+\begin{split}
+y_{n+1} &= y_n + hb_1f(t_n,\xi_1) + hb_2f(t_n + c_2h,\xi_2) + hb_3f(t_n + c_3h,\xi_3) \\
+&= y_n + hb_1f + hb_2(f + h[ c_2 f_t + a_{21}ff_y ]) + hb_3(f + h[ c_3 f_t + a_{31} ff_y + a_{32}ff_y ] \\
+&\hspace{1cm} + h^2 [a_{32}c_2 f_t f_y + a_{32}a_{21}f_y^2]) \\
+&= y_n + hb_1f + hb_2f + hb_3f + h^2 [ b_2c_2f_t + b^2a_{21}f)f_y ]) + h^2 [ b_3c_3 f_t + b_3a_{31} ff_y + b_3a_{32}ff_y ] \\
+&\hspace{1cm}+ h^3 [b_3a_{32}c_2 f_tf_y + b_3a_{32}a_{21}f_y^2]) \\
+&= y_n + h(b_1 + b_2 + b_3) f  + h^2 [ b_2c_2 f_t + b_2a_{21}ff_y +  b_3c_3 f_t + b_3a_{31} ff_y + b_3a_{32}f f_y] \\
+&\hspace{1cm}+ h^3 [b_3a_{32}c_2 f_tf_y + b_3a_{32}a_{21} f_y^2] \\
+&= y_n + h(b_1 + b_2 + b_3) f  + h^2 [ b_2c_2 f_t +  b_3c_3 f_t + b_2a_{21}f(t_n,y_n)f_y  + b_3a_{31} ff_t + b_3a_{32}f f_y ] \\
+&\hspace{1cm}+ h^3 [b_3a_{32}c_2 f_t f_y+ b_3a_{32}a_{21} f_y^2] \\
+&= y_n + h(b_1 + b_2 + b_3) f  + h^2( b_2c_2 + b_3c_3)f_t + h^2(b_2a_{21} + b_3a_{31} + b_3a_{32}) f f_y ] \\
+&\hspace{1cm}+ h^3 (b_3a_{32}c_2) f_t f_y +h^3( b_3a_{32}a_{21})f_y^2
+\end{split}
+\end{align*}
+
+\begin{align*}\label{1.3.1}
+\begin{split}
+y_{n+1}= y_n + h(b_1 + b_2 + b_3) f  + h^2( b_2c_2 + b_3c_3)f_t + h^2(b_2a_{21} + b_3a_{31} + b_3a_{32}) f f_y ] \\
+\hspace{1cm} + h^3 (b_3a_{32}c_2) f_t f_y +h^3( b_3a_{32}a_{21})f_y^2
+\end{split}
+\end{align*}
+
+$ y(t_n + 1) = y(t_n + h) $
+
+Using the Taylor formula to expand the above equation, we have 
+
+$ y(t_n + 1) = y(t_n)+ hy^\prime (t_n) + \frac{h^2}{2!}y^{\prime\prime} (t_n) + \frac{h^3}{3!}y^{\prime\prime\prime} (t_n)+ \mathcal{O}(h^4)  $
+
+Now, 
+
+\begin{align*}
+y^\prime &= f \\
+y^{\prime\prime} &= f_t + f_yy^\prime = f_t + f_yf = f_yf \\
+y^{\prime\prime\prime} &= f_{tt} + f_{ty}y^\prime + f_y(f_t + f_yy^\prime) + f(f_{yt} + f_{yy}y^\prime) \\
+&= f_{tt} + f_{ty}f + f_y(f_t + f_yf) + f(f_{yt} + f_{yy}f)\\
+&= f_{tt} + f_{ty}f + f_yf_t + f^2yf + f_{yt}f + f_{yy}f^2 \\
+&= f^2yf + f_{yy}f^2 
+\end{align*}
+
+Thus, 
+
+\begin{align*}
+y(t_n + 1) &= y(t_n) + hf + h^2[\frac{1}{2}f_t + \frac{1}{2} f_tf] + \frac{h^3}{3!}f_{tt}^2 + f_{ty} f + f_y f_t + f_y^2f + f_{yt}f+ f_{yy}^2f^2 + \mathcal{O}(h^4)  \\
+&= y(t_n) + hf+ h^2[\frac{1}{2}f_t + \frac{1}{2}f_tf] + h^3[\frac{1}{3}f_{tt}^2 + \frac{1}{3}f_{ty} f + \frac{1}{3} f_y f_t + \frac{1}{3}f_y^2f \\
+&\hspace{1cm} + \frac{1}{3}f_{yt}f+ \frac{1}{3}f_{yy}^2f^2] + \mathcal{O}(h^4)
+\end{align*}
+
+\begin{equation}\tag{1.3.2}\label{1.3.2}
+y(t_n + 1) = y(t_n) + hf+ h^2[\frac{1}{2}f_t + \frac{1}{2}f_tf] + h^3[\frac{1}{3}f_{tt}^2 + \frac{1}{3}f_{ty} f + \frac{1}{3} f_y f_t + \frac{1}{3}f_y^2f + \frac{1}{3}f_{yt}f+ \frac{1}{3}f_{yy}^2f^2] + \mathcal{O}(h^4)
+\end{equation}
+
+Comparing coefficients of \ref{1.3.1} and \ref{1.3.2} we get,
+
+\begin{align*}
+b_1 + b_2 + b_3 &= 1 \\ 
+b_2c_2 + b_3c_3 &= \frac{1}{2} \\
+b_2c_2^2 + b_3c_3^2 &= \frac{1}{3} \\
+b_3a_{32}c_2 &= \frac{1}{6}
+\end{align*}
+
+Some popular choices of order 3 are given below
+
+\begin{center}
+\begin{tabular}{c|ccc}
+0\\
+1/2&1/2\\
+1&-1&2\\
+\hline
+&1/6&2/3&1/6
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{c|ccc}
+0\\
+2/3&2/3\\
+2/3&0&2/3\\
+\hline
+&1/4&3/8&3/8
+\end{tabular}
+\end{center}
+
+\subsubsection{Four-stage formula}
+Four stage formula is of the form
+
+\begin{equation*}
+  \begin{array}{c|cccc}
+    0       \\
+    c_2       & a_{2,1}  \\
+    c_3    &a_{3,1}   &a_{3,2}  \\
+    c_4    &a_{4,1}   &a_{4,2}  &a_{4,3} \\
+    \hline
+    \,        & b_1      & b_2     & b_3  & b_4
+  \end{array}
+\end{equation*}
+
+Let us consider the case of order 4, i.e v=4
+
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + ha_{21}f(t_n, \xi_1) \\
+\xi_3 &= y_n + ha_{31}f(t_n, \xi_1) + ha_{32}f(t_n, \xi_2) \\
+\xi_4 &= y_n + ha_{41}f(t_n, \xi_1) + ha_{42}f(t_n, \xi_2)+ ha_{42}f(t_n, \xi_3) 
+\end{align*}
+ 
+\begin{align*}
+y_{n+1} &= y_n + hb_1f(t_n, \xi_1) + hb_2f(t_n + c_2h , \xi_2) + hb_3f(t_n + c_3h , \xi_3) + hb_4f[t_n + c_4h, \xi_4) \\
+&= h( b_1f + b_2f + b_3f + b_4f ) + h^2( b_2c_2f_t + b_2a_{2,1}f_yf + b_3a_{3,1}f_yf + b_3a_{3,1}f_yf + b_4c_4f_t \\
+& \hspace{1cm}+ b_4a_{4,1}f^2f_y + b_4a_{4,3}f^2f_y) + h^3(b_3a_{3,2}c_2f_tf_y + b_3a_{3,2}a{2,1}ff_y^2 + b_4a_{4,2}c_2f_tf_yf \\
+& \hspace{2cm}+ b_4a_{4,2}a_{2,1}f_y^2f^2 + b_4a_{4,3}a_{3,1}f^2f_y^2) \\
+&\hspace{3cm}+ h^4(b_4a_{4,3}a_{3,2}c_2f_tf_y^2 + b_4a_{4,3}a_{3,2}a{2,1}f^2f_y^3) + \mathcal{O}(h^5) \\
+&= y_n + h(b_1 + b_2 + b_3 + b_4)f + h^2(b_2c_2 + b_3c_3 + b_4c_4)f_t + h^2(b2a_{2,1} + b_3a_{3,1} + b_4a_{4,1}f_yf \\
+& \hspace{1cm} + h^2(b_4a_{4,1} + b_4a_{4,2} + b_4a_{4,3})f^2f_y + h^3(b_3a_{3,2}c_2)f_tf_y + h^3(b_3a_{3,2})ff_y^2 \\
+& \hspace{2cm} + h^3(b_4a_{4,2}c_2)f_tf_yf + h^3(b_4a_{4,2}a_{2,1} + b_4a_{4,3}a{3,1} + b_4a_{4,3}a_{3,2})f_y^2f^2 \\
+& \hspace{3cm}+ h^4(b_4a_{4,3}a_{3,2}c_2)f_tf_y^2 + h^4(b_4a_{4,3}a_{3,2}a_{2,1})f^2f_y^2 + \mathcal{O}(h^5)
+\end{align*}
+
+%\begin{align*}\tag{1.4.1}\label{1.4.1}
+%\begin{split}
+%y_{n+1} &= y_n + h(b_1 + b_2 + b_3 + b_4)f + h^2(b_2c_2 + b_3c_3 + b_4c_4)f_t + h^2(b2a_{2,1} + b_3a_{3,1} + b_4a_{4,1}f_yf \\
+%& \hspace{1cm}+ h^2(b_4a_{4,1} + b_4a_{4,2} + b_4a_{4,3})f^2f_y + h^3(b_3a_{3,2}c_2)f_tf_y + h^3(b_3a_{3,2})ff_y^2 + h^3(b_4a_{4,2}c_2)f_tf_yf \\
+%& \hspace{2cm} + h^3(b_4a_{4,2}a_{2,1} + b_4a_{4,3}a{3,1} + b_4a_{4,3}a_{3,2})f_y^2f^2 + h^4(b_4a_{4,3}a_{3,2}c_2)f_tf_y^2 \\
+%& \hspace{3cm}+ h^4(b_4a_{4,3}a_{3,2}a_{2,1})f^2f_y^2 + \mathcal{O}(h^5)
+%\end{split}
+%\end{align*}
+
+\begin{align*}\tag{1.4.1}\label{1.4.1}
+\begin{split}
+y_{n+1} &= y_n + h(b_1 + b_2 + b_3 + b_4)f  + h^2(b_2c_2 + b_3c_3 + b_4c_4)f_t + h^2(b_2c_2^2 + b_3c_3^2 + b_4c_4^2)f_t \\
+& \hspace{1cm} + h^3\frac{1}{2}(b_2c_2^2 + b_3c_3^2 + b_4c_4^2)f_t + h^3(b_3a_{3,2}c_2 + b_4a_{4,2}c_2 + b_4a_{4,3}c_3)f_t \\
+& \hspace{2cm}+ h^4 \frac{1}{6}(b_2c_2^3 + b_3c_3^3 + b_4c_4^3) + h^4 \frac{1}{2}(b_2c_2^3 + b_3c_3^3 + b_4c_4^3)+ h^4\frac{1}{6}(b_2c_2^3 + b_3c_3^3 + b_4c_4^3) \\
+& \hspace{3cm} + h^4\frac{1}{2}(b_3a_{3,2}c_2^3 + b_4a_{4,2}c_3^3 + b_4a_{4,3}c_4^3) + h^4\frac{1}{2}(b_3a_{3,2}c_2^3 + b_4a_{4,2}c_3^3 + b_4a_{4,3}c_4^3) \\
+& \hspace{4cm}+ h^4(b_3x_3a_{3,2}c_2 + b_4c_4a_{4,2}c_2 + b_4c_4a_{4,3}c_3) + h^4(b_3x_3a_{3,2}c_2 + b_4c_4a_{4,2}c_2 \\
+& \hspace{5cm}+ b_4c_4a_{4,3}c_3) + h_4b_4a_{4,3}a_{3,2}c_2
+\end{split}
+\end{align*}
+
+\begin{align*}
+\begin{split}
+y^\prime &= f(t_n , y_n) \\
+y^{\prime\prime} &= f_t + f_yy^\prime = f_t + f_yf = f_yf \\
+y^{\prime\prime\prime} &= f_{tt} + f_{ty}y^\prime + f_y(f_t + f_yy^\prime) + f(f_{yt} + f_{yy}y^\prime) \\
+&= f_{tt} + f_{ty}f + f_y(f_t + f_yf) + f(f_{yt} + f_{yy}f)\\
+&= f_{tt} + f_{ty}f + f_yf_t + f^2yf + f_{yt}f + f_{yy}f^2 \\
+&= f^2yf + f_{yy}f^2 \\
+y^{iv} &= f_{ttt} + f_{tty}y^\prime + f_{ty}(f_t + f_yy^\prime) + f(f_{tyt} + f_{tyy}y^\prime) + f_{y}(f_{tt} + f_{ty}y^\prime) + f_{t}(f_{yt} \\
+& \hspace{1cm}+ f_{yy}y^\prime) + f_{y}^2(f_t + f_yy^\prime)+ f(2f_yf_{yt} + 2f_yf_{yy}y^\prime) + f_{yt}(f_t + f_yy^\prime) \\
+& \hspace{2cm}+ f(f_{ytt} + f_{yty}y^\prime) + f_{yy}(2f_t + 2ff_yy^\prime) + f^2(f_{yyt} + f_{yyy}y^\prime) \\
+&= f_{ttt} + f_{tty}f + f_{ty}f_t + f_{ty}f_yf + f(f_{tyt} + f^2f_{tyy} + f_{y}f_{tt} + f_{y}f_{ty}f + f_{t}f_{yt} \\
+& \hspace{1cm} + f_{t}f_{yy}f + f_y^2f_t + f_y^2f_yf + 2ff_yf_{yt}f + 2f_yf_{yy}f^2 + f_{yt}f_t + f_{yt}f_yf \\
+& \hspace{2cm}+ ff_{ytt} + f_{yty}f^2 + 2f_tf_{yy}f + 2f_yf_{yy}f^2 + f^2f_{yyt} + f^3f_{yyy} 
+\end{split}
+\end{align*}
+
+$$y(t_{n + 1}) = y(t_n + h) $$
+\begin{align*}\tag{1.4.2}\label{1.4.2}
+y(t_{n + 1})= y(t_n)+ hy^\prime (t_n) + \frac{h^2}{2!}y^{\prime\prime}(t_n) + \frac{h^3}{3!}y^{\prime\prime}(t_n) + \frac{h^4}{4!}y^{\prime\prime}(t_n) + \mathcal{O}(h^5)  
+\end{align*}
+
+Comparing coefficients of \ref{1.4.1} and \ref{1.4.2} we get
+
+\begin{align*}
+a_{2,1} &= c_2 \\
+a_{3,1} + a_{3,2} &= c_3 \\
+a_{4,1} + a_{4,2} + a_{4,3} &= c_4  \\
+b_1 + b_2 + b_3 + b_4 &= 1 \\
+b_2c_2 + b_3 c_3 + b_4c_4 &= \frac{1}{2} \\
+b_2c_2^2 + b_3 c_3^2 + b_4c_4^2 &= \frac{1}{3} \\
+b_3a_{3,2}c_2 + b_4a_{4,2}c_2 + b_4a_{4,3}c_3 &= \frac{1}{6} \\
+b_2c_2^3 + b_3 c_3^3 + b_4c_4^3 &= \frac{1}{4} \\
+b_3a_{3,2}c_2^2 + b_4a_{4,2}c_3^2 + b_4a_{4,3}c_4^2 &= \frac{1}{12} \\
+b_3c_3a_{3,2}c_2 + b_4c_4a_{4,2}c_2 + b_4a_{4,3}c_3 &= \frac{1}{24} \\
+b_3c_3a_{3,2}c_2 + b_4c_4a_{4,2}c_2 + b_4a_{4,3}c_3 &= \frac{1}{8} \\
+b_4a_{4,3}a_{3,2}c_2 &= \frac{1}{24} 
+\end{align*}
+
+Some popular choices of the 4th RK method are;
+
+\begin{center}
+\begin{tabular}{c|cccc}
+0\\
+1/2&1/2\\
+1/2&0&1/2\\
+1&0&0&1\\
+\hline
+&1/6&2/6&2/6&1/6
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{c|cccc}
+0\\
+1/3&1/3\\
+1/3&-1/3&1\\
+1&1&-1&1\\
+\hline
+&1/8&3/8&3/8&1/8
+\end{tabular}
+\end{center}
+
+
+\subsection{Runge-Kutta Fourth Order Method Example}
+\begin{question}
+\begin{equation}\label{Eqtn1}
+\frac{dy}{dt} = 2y + t^2 - 5
+\end{equation}
+\begin{center}
+$ y(0)=1 $ \qquad
+$Step size \quad h = 0.5 $
+
+Use the RK4 to find y for $0\leq t \leq 3$
+\end{center}
+
+\end{question}
+\hspace{2pt}
+
+\noindent 
+\textbf{Solution}
+\begin{equation}\label{Eqtn2}
+\frac{dy}{dt} = y^\prime = f(t_n,y_n), \quad
+ t\geq 0 \quad y(t_0)= y_0 
+\end{equation}
+Consider the above ordinary differential equation \ref{Eqtn2}. We are given an initial point $y = y_0$ when $ t=t_0 $. Now, comparing this to the question, we have $y = 1 $ when $ t=0 $
+
+\noindent
+Let us consider the ERK of order 4. The Butcher's tableau for is given by
+
+\begin{equation}\label{table1}
+  \begin{array}{c|cccc}
+    0        \\
+    c_2       & a_{2,1}  \\
+    c_3       & a_{3,1}  &  a_{3,2}  \\
+    c_4       & a_{4,1}  &  a_{4,2}   & a_{4,3} \\
+    \hline
+    \,        & b_1      & b_2       &b_3     & b_4
+  \end{array}
+\end{equation}
+
+\noindent
+The best known fourth-order four-stage ERK method is given by
+
+\begin{equation}\label{table2}
+  \begin{array}{c|cccc}
+    0        \\
+    1/2     & 1/2  \\
+    1/2     & 0  &  1/2  \\
+    1       & 0  &  0   & 1 \\
+    \hline
+    \,        & 1/6      & 1/3      &1/3     & 1/6
+  \end{array}
+\end{equation}
+
+\noindent
+In order to generate a solution for an ODE using the RK4 method, we have to find each $\xi_j, \quad j=1,2,3,4$. This is given by the formula 
+
+\begin{align*}
+\xi_v &= h \sum_{i=1}^{v-1}a_{vi}f(t_n + c_ih , \xi_i ) 
+\end{align*}
+
+\noindent
+Now we have 
+\begin{align}\label{xi1}
+\xi_1 &= y_n \\ \label{xi2}
+\xi_2 &= y_n + a_{21}h f (t_n, \xi_1 ) \\ \label{xi3}
+\xi_3 &= y_n + a_{31}h f (t_n, \xi_1 ) + a_{32}h f (t_n + c_2h, \xi_2 ) \\ \label{xi4}
+\xi_4 &= y_n + a_{41}h f(t_n, \xi_1 ) + a_{42}h f (t_n + c_2h, \xi_2 ) + a_{43}h f(t_n + c_3h, \xi_3 )  
+\end{align}
+
+\noindent
+The solution is given by
+\begin{align*}
+y_{n+1} &= y_n + h \sum_{j=1}^{v}b_jf(t_n + c_jh , \xi_j ) 
+\end{align*}
+
+\subsubsection{Finding Numerical solutions}
+\noindent
+For order 4, the solution is
+\begin{align*}
+\begin{split}
+y_{n+1} &= y_n + h [b_1f(t_n + c_1h , \xi_1 ) + b_2f(t_n + c_2h , \xi_2 ) \\
+&\hspace{1cm}+ b_3f(t_n + c_3h , \xi_3 )+ b_4f(t_n + c_4h , \xi_4 )]
+\end{split}
+\end{align*}
+
+Now, comparing \eqref{Eqtn2} and \ref{table2}, we have that 
+ 
+$
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3 \\
+b_4
+\end{bmatrix}
+$ = 
+$
+\begin{bmatrix}
+1/6 \\
+1/3 \\
+1/3 \\
+1/6
+\end{bmatrix}
+$
+\qquad and  \qquad 
+$
+\begin{bmatrix}
+c_1 \\
+c_2 \\
+c_3 \\
+c_4
+\end{bmatrix}
+$ =
+$
+\begin{bmatrix}
+0 \\
+1/2 \\
+1/2\\
+1
+\end{bmatrix}
+$
+
+\hspace{2pt}
+
+$ a_{2,1} = \frac{1}{2},\quad a_{3,1} = 0,\quad a_{3,2} = \frac{1}{2},\quad a_{4,1} = 0,\quad a_{4,2} = 0,\quad a_{4,3} = 1 $
+
+\hspace{2pt}
+Now substituting these values into \ref{xi1}, \ref{xi2}, \ref{xi3} and \ref{xi4}, we get
+\begin{align*}
+\xi_1 &= y_n \\ 
+\xi_2 &= y_n + a_{21}h f (t_n, \xi_1 ) \\ 
+&= y_n + h\left( \frac{1}{2}\right) f(t_n,y_n) \\
+&= y_n + \frac{1}{2}hf(t_n,y_n) \\
+\xi_3 &= y_n + a_{31}h f (t_n, \xi_1 ) + a_{32}h f (t_n + c_2h, \xi_2 ) \\ 
+&= y_n + 0 + h\left( \frac{1}{2}\right) f\left( t_n + \frac{1}{2}h, \xi_2 \right)  \\
+&= y_n + \frac{1}{2}hf\left( t_n + \frac{1}{2}h, \xi_2 \right)  \\
+\xi_4 &= y_n + a_{41}h f(t_n, \xi_1 ) + a_{42}h f (t_n + c_2h, \xi_2 ) + a_{43}h f(t_n + c_3h, \xi_3 ) \\
+&= y_n + 0 + 0 + hf\left( t_n + \frac{1}{2}h, \xi_3\right)  \\
+&= y_n + hf\left( t_n + \frac{1}{2}h,\xi_3\right)    
+\end{align*}
+
+Therefore, the formula for solving $\xi_v$ for RK4, where $v=1,2,3,4$ is 
+\begin{align*}
+\xi_1 &= y_n \\
+\xi_2 &= y_n + \frac{1}{2}hf(t_n,\xi_1) \\
+\xi_3 &= y_n + \frac{1}{2}hf\left( t_n + \frac{1}{2}h, \xi_2 \right)  \\
+\xi_4 &= y_n + hf\left( t_n + \frac{1}{2}h, \xi_3\right) 
+\end{align*}
+
+The solution is given by
+\begin{align*}
+y_{n+1} &= y_n + h [b_1f(t_n + c_1h , \xi_1 ) + b_2f(t_n + c_2h , \xi_2 )\\
+&\hspace{1cm}+ b_3f(t_n + c_3h , \xi_3 )+ b_4f(t_n + c_4h , \xi_4 )]  \\
+&= y_n + h [ \frac{1}{6}f(t_n + c_1h , \xi_1 )+ \frac{1}{3}f(t_n + c_2h , \xi_2) \\
+&\hspace{1cm} + \frac{1}{3}f(t_n + c_3h , \xi_3 ) + \frac{1}{6}f(t_n + c_4h , \xi_4 )]  \\
+&= y_n + \frac{1}{6}h[ f(t_n + c_1h , \xi_1 ) + 2f(t_n + c_2h , \xi_2) \\
+&\hspace{1cm}+ 2f(t_n + c_3h , \xi_3 ) + f(t_n + c_4h , \xi_4)] \\
+&= y_n + \frac{1}{6}h[ f(t_n , \xi_1 ) + 2f(t_n + \frac{1}{2} h , \xi_2) \\
+&\hspace{1cm}+ 2f(t_n + \frac{1}{2} h , \xi_3 ) + f(t_n + h , \xi_4)] 
+\end{align*}
+
+Now, we are asked to find $y$ for $0\leq t \leq 3$
+
+Since the step size is $0.5$, we will iterate $t$ on $\left[ 0,3 \right] $. This is given by 
+
+$t_0 = 0, \: t_1 =0.5,\: t_2 = 1,\: t_3 = 1.5,\: t_4 = 2,\: t_5 = 2.5 \: \text{and} \: t_6 = 3$
+
+\hspace{2pt}
+
+\noindent
+\textbf{Step 0:}
+
+$t_0 = 0, \quad y_0 = 1 $
+
+\noindent
+\textbf{Step 1:}
+
+$ t_1 = 0.5 $
+\begin{align*}
+\xi_1 &= y_0 = 1\\
+\xi_2 &= y_0 + \frac{1}{2}hf(t_0,\xi_1) \\
+&= 1 + \frac{1}{2}0.5f(0,1)\\
+&= 1 + 0.25(-3) = 0.25 \\
+\xi_3 &= y_0 + \frac{1}{2}hf\left( t_0 + \frac{1}{2}h, \xi_2 \right)  \\
+&= 1 + \frac{1}{2}(0.5)f\left( 0 + \frac{1}{2}0.5, 0.25 \right)  \\
+&= 1 + 0.25(-4.4375) = -0.109375  \\
+\xi_4 &= y_0 + hf\left( t_0 + \frac{1}{2}h, \xi_3\right) \\
+&= 1 + 0.5f\left( 0 + \frac{1}{2}0.5, -0.109375\right) \\
+&= 1 + 0.5(-5.15635) = -1.578125
+\end{align*}
+
+The solution is given by 
+\begin{align*}
+y_{0+1} &= y_0 + \frac{1}{6}h\left[ f(t_0 , \xi_1 ) + 2f(t_0 + \frac{1}{2} h , \xi_2) + 2f(t_0 + \frac{1}{2} h , \xi_3 ) + f(t_0 + h , \xi_4) \right] \\
+y_1 &= 1 + \frac{1}{6}(0.5)\left[ -3 + 2(-4.4375) + 2( -5.15625 ) + (-7.90625) \right] \\
+&= -1.5078125
+\end{align*}
+Hence, \quad $y(0.5) = -1.5078125$
+
+\textbf{Step 2:}
+
+$ t_2 = 1 $
+\begin{align*}
+\xi_1 &= y_1 = -1.5078125 \\
+\xi_2 &= y_1 + \frac{1}{2}hf(t_1,\xi_1) \\
+&= -1.5078125 + \frac{1}{2}(0.5)f(0.5,-1.5078125)\\
+&= -1.5078125 + 0.25(-7.765625) = -3.44921875 \\
+\xi_3 &= y_1 + \frac{1}{2}hf\left( t_1 + \frac{1}{2}h, \xi_2 \right)  \\
+&= -1.5078125 + \frac{1}{2}(0.5)f\left( 0.5 + \frac{1}{2}0.5, -3.44921875 \right)  \\
+&= -1.5078125 + 0.25(-11.3359375) = -4.341796875  \\
+\xi_4 &= y_1 + hf\left( t_1 + \frac{1}{2}h, \xi_3\right) \\
+&= -1.5078125 + 0.5f\left( 0.5 + \frac{1}{2}0.5, -4.341796875\right) \\
+&= -1.5078125 + 0.5(-13.12109375) = -8.068359375
+\end{align*}
+
+The solution is given by 
+\begin{align*}
+y_{1+1} &= y_2 + \frac{1}{6}h\left[ f(t_1 , \xi_1 ) + 2f(t_1 + \frac{1}{2} h , \xi_2) + 2f(t_1 + \frac{1}{2} h , \xi_3 ) + f(t_1 + h , \xi_4) \right] \\
+y_2 &= -1.5078125 + \frac{1}{6}(0.5)[ -7.765625 + 2(-11.3359375)\\
+&\hspace{1cm} + 2( -13.12109375 ) + (-20.13671875)] \\
+&= -7.909179687
+\end{align*}
+Hence, \quad $y(1) = -7.909179687$
+
+\noindent
+\textbf{Step 3:}
+
+$ t_3 = 1.5 $
+\begin{align*}
+\xi_1 &= y_2 = -7.909179687 \\
+\xi_2 &= y_2 + \frac{1}{2}hf(t_2,\xi_1) \\
+&= -7.909179687 + \frac{1}{2}(0.5)f(1,-7.909179687)\\
+&= -7.909179687 + 0.25(-19.81835937) = -12.86376953 \\
+\xi_3 &= y_2 + \frac{1}{2}hf\left( t_2 + \frac{1}{2}h, \xi_2 \right)  \\
+&= -7.909179687 + \frac{1}{2}(0.5)f\left( 1 + \frac{1}{2}0.5, -12.86376953 \right)  \\
+&= -7.909179687 + 0.25(-29.16503906) = -15.20043945  \\
+\xi_4 &= y_2 + hf\left( t_2 + \frac{1}{2}h, \xi_3\right) \\
+&= -7.909179687 + 0.5f\left( 1 + \frac{1}{2}0.5, -15.20043945\right) \\
+&= -7.909179687 + 0.5(-33.8383789) = -24.82836914
+\end{align*}
+
+The solution is given by 
+\begin{align*}
+y_{2+1} &= y_3 + \frac{1}{6}h [ f(t_2 , \xi_1 ) + 2f(t_2 + \frac{1}{2} h , \xi_2) + 2f(t_2 + \frac{1}{2} h , \xi_3 ) + f(t_2 + h , \xi_4)] \\
+y_3 &= -7.909179687 + \frac{1}{6}(0.5)[ -19.81835937 + 2(-29.16503906) \\
+&\hspace{1cm}+ 2( -33.8383789 ) + (-52.40673828)] \\
+&= -24.42850748
+\end{align*}
+Hence, \quad $y(1.5) = -24.42850748$
+
+\noindent
+\textbf{Step 4:}
+
+$ t_4 = 2 $
+\begin{align*}
+\xi_1 &= y_3 = -24.42850748 \\
+\xi_2 &= y_3 + \frac{1}{2}hf(t_3,\xi_1) \\
+&= -24.42850748 + \frac{1}{2}(0.5)f(1.5,-24.42850748)\\
+&= -24.42850748 + 0.25(-51.60701496) = -37.33026122 \\
+\xi_3 &= y_3 + \frac{1}{2}hf\left( t_3 + \frac{1}{2}h, \xi_2 \right)  \\
+&= -24.42850748 + \frac{1}{2}(0.5)f\left( 1.75 + \frac{1}{2}0.5, -37.33026122 \right)  \\
+&= -24.42850748 + 0.25(-76.59802244) = -43.57801309  \\
+\xi_4 &= y_3 + hf\left( t_3 + \frac{1}{2}h, \xi_3\right) \\
+&= -24.42850748 + 0.5f\left( 1.75 + \frac{1}{2}0.5, -43.57801309\right) \\
+&= -24.42850748 + 0.5(-89.09352618) = -68.97527057
+\end{align*}
+
+The solution is given by 
+\begin{align*}
+y_{3+1} &= y_3 + \frac{1}{6}h\left[ f(t_3 , \xi_1 ) + 2f(t_3 + \frac{1}{2} h , \xi_2) + 2f(t_3 + \frac{1}{2} h , \xi_3 ) + f(t_3 + h , \xi_4) \right] \\
+y_4 &= -24.42850748 + \frac{1}{6}(0.5)[ -51.60701496 + 2(-76.59802244) \\
+&\hspace{1cm} + 2( -89.09352618 ) + (-138.9505411)] \\
+&= -67.92356192
+\end{align*}
+Hence, \quad $y(2) = -67.92356192 $
+
+\noindent
+\textbf{Step 5:}
+
+$ t_5 = 2.5 $
+\begin{align*}
+\xi_1 &= y_3 = -67.92356192 \\
+\xi_2 &= y_3 + \frac{1}{2}hf(t_4,\xi_1) \\
+&= -67.92356192 + \frac{1}{2}(0.5)f(2,-67.92356192)\\
+&= -67.92356192 + 0.25(-136.8471238) = -102.1353429 \\
+\xi_3 &= y_3 + \frac{1}{2}hf\left( t_2 + \frac{1}{2}h, \xi_2 \right)  \\
+&= -67.92356192 + \frac{1}{2}(0.5)f\left( 1.75 + \frac{1}{2}0.5, -102.1353429 \right)  \\
+&= -67.92356192 + 0.25(-204.2081858) = -118.9756084  \\
+\xi_4 &= y_3 + hf\left( t_2 + \frac{1}{2}h, \xi_3\right) \\
+&= -67.92356192 + 0.5f\left( 1.75 + \frac{1}{2}0.5, -118.9756084\right) \\
+&= -67.92356192 + 0.5(-237.8887167) = -186.8679203
+\end{align*}
+
+The solution is given by 
+\begin{align*}
+y_{4+1} &= y_4 + \frac{1}{6}h\left[ f(t_4 , \xi_1 ) + 2f(t_4 + \frac{1}{2} h , \xi_2) + 2f(t_4 + \frac{1}{2} h , \xi_3 ) + f(t_4 + h , \xi_4) \right] \\
+y_4 &= -67.92356192 + \frac{1}{6}(0.5)[ -136.8471238 + 2(-204.2081858) \\
+&\hspace{1cm}+ 2( -237.8887167 ) + (-372.4858406)] \\
+&= -184.0507927
+\end{align*}
+Hence, \quad $y(2.5) = -184.0507927 $
+
+\noindent
+\textbf{Step 6:}
+
+$ t_6 = 3 $
+\begin{align*}
+\xi_1 &= y_3 = -184.0507927 \\
+\xi_2 &= y_3 + \frac{1}{2}hf(t_4,\xi_1) \\
+&= -184.0507927 + \frac{1}{2}(0.5)f(2.5,-184.0507927)\\
+&= -184.0507927 + 0.25(-366.8515854) = -275.7636891 \\
+\xi_3 &= y_3 + \frac{1}{2}hf\left( t_2 + \frac{1}{2}h, \xi_2 \right)  \\
+&= -184.0507927 + \frac{1}{2}(0.5)f\left( 1.75 + \frac{1}{2}0.5, -275.7636891 \right)  \\
+&= -184.0507927 + 0.25(-548.9648781) = -321.2920122  \\
+\xi_4 &= y_3 + hf\left( t_2 + \frac{1}{2}h, \xi_3\right) \\
+&= -184.0507927 + 0.5f\left( 1.75 + \frac{1}{2}0.5, -321.2920122\right) \\
+&= -184.0507927 + 0.5(-640.0215245) = -504.0615549
+\end{align*}
+
+The solution is given by 
+\begin{align*}
+y_{4+1} &= y_5 + \frac{1}{6}h\left[ f(t_5 , \xi_1 ) + 2f(t_5 + \frac{1}{2} h , \xi_2) + 2f(t_5 + \frac{1}{2} h , \xi_3 ) + f(t_5 + h , \xi_4) \right] \\
+y_4 &= -184.0507927 + \frac{1}{6}(0.5)[ -366.8515854 + 2(-548.9648781)\\
+&\hspace{1cm} + 2( -640.0215245 ) + (-1004.12311)] \\
+&= -496.4630844
+\end{align*}
+Hence, \quad $y(3) = -496.4630844 $
+
+\subsubsection{Finding Exact Solution}
+\noindent
+With reference to \eqref{Eqtn1} let us solve for the exact solution. Using the method of integrating factors,
+
+\begin{equation}\label{eqtn5}\tag{5}
+y^\prime + p(x)y = q(x) 
+\end{equation}
+
+Integrating factor(I.F): $\mu = e^{\int p(t)dt} = e^{-\int 2)dt} = e^{-2t}$
+
+Now, comparing \ref{eqtn5}to the question, we have $p(x) = -2$ and $q(x) = t^2 - 5$
+
+\begin{align*}
+\frac{dy}{dt} - 2y &= t^2 -5\\
+\text{Multiplying through by the integrating factor, we have}\\
+e^{-2t}\frac{dy}{dt} - e^{-2t}2y &= e^{-2t}\left( t^2 -5\right) \\
+\frac{dy}{dt}\left[e^{-2t}y\right] = e^{-2t}\left( t^2 -5\right) \\
+e^{-2t}y = \int e^{-2t}\left( t^2 -5\right) dt \\
+y = \frac{1}{e^{-2t}}\int e^{-2t}\left( t^2 -5\right) dt \\
+y = \frac{1}{e^{-2t}} \left(  \frac{-1(e^{-2t} t^2)}{2} - \frac{-1(e^{-2t} t)}{2} + \frac{9}{4}+ \frac{c_1}{e^{-2t}} \right) \\
+y = \frac{-1 t^2}{2} + \frac{-1 t}{2} + \frac{9}{4} + \frac{c_1}{e^{-2t}} \\
+\end{align*}
+
+when $t_0 = 0, \quad y_0 = 1$
+
+\begin{align*}
+y(t) &= \frac{-t^2}{2} - \frac{t}{2} + \frac{9}{4} + c_1 e^{2t} \\
+1 &= \frac{9}{4} + c_1 \\
+c_1 &= 1 - \frac{9}{4} \quad = -1.25
+\end{align*}
+
+So, the equation is given by 
+\begin{align*}
+y(t) &= \frac{-t^2}{2} - \frac{t}{2} + \frac{9}{4} - 1.25e^{2t}
+\end{align*}
+
+\begin{align*}
+y(t_0) = y(0) &= \frac{0^2}{2} - \frac{0}{2} + \frac{9}{4} - 1.25e^{2(0)} = 1\\
+y(t_1) = y(0.5) &= \frac{-(0.5)^2}{2} - \frac{0.5}{2} + \frac{9}{4} - 1.25e^{2(0.5)} = -1.522852286\\
+y(t_2) = y(1) &= \frac{-1^2}{2} - \frac{1}{2} + \frac{9}{4} - 1.25e^{2(1)} = -7.986320124 \\
+y(t_3) = y(1.5) &= \frac{-(1.5)^2}{2} - \frac{(1.5)}{2} + \frac{9}{4} - 1.25e^{2(1.5)} = -24.73192115 \\
+y(t_4)= y(2) &= \frac{-2^2}{2} - \frac{2}{2} + \frac{9}{4} - 1.25e^{2(2)} = -68.99768754 \\
+y(t_5) = y(2.5) &= \frac{(-2.5)^2}{2} - \frac{2.5}{2} + \frac{9}{4} - 1.25e^{2(2.5)} = -187.6414489 \\
+y(t_6) = y(3) &= \frac{-3^2}{2} - \frac{3}{2} + \frac{9}{4} - 1.25e^{2(3)} = -508.0359919
+\end{align*}
+
+\subsubsection{Plotting and Tables}
+\begin{table}[ht]\caption{$\frac{dy}{dt} = 2y + t^2 - 5  \quad y(0)=1 \quad h=0.5$}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Step  &  Approximate  & Exact & Error=$|$Exact - Approx$|$ \\
+\hline
+$t_0 = 0 $ & 1 & 1 & 0 \\
+\hline
+$t_1 = 0.5 $ & -1.578125 & -1.522852286 & 0.55272714 \\
+\hline
+$t_2 = 1.0 $ & -7.909179687 & -7.986320124 & 0.077140437 \\
+\hline
+$t_3 = 1.5 $ & -24.82836914 & -24.73192115 & 0.09644799 \\
+\hline
+$t_4 = 2.0 $ & -67.92356192 & -68.99768754 & 1.07412562 \\
+\hline
+$t_5 = 2.5 $ & -184.0507927 & -187.6414489 & 3.5906562 \\
+\hline
+$t_6 = 3.0 $ & -496.4630844 & -508.0359919 & 11.5729075 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \begin{center}
+  \includegraphics[width=4.5cm]{ax.jpg}
+  \end{center}
+  \caption{$\frac{dy}{dt} = 2y + t^2 - 5 \quad y(0)= 1 \quad h = 0.5, \quad 0.2 \quad and \quad 0.01 $}
+  \label{fig:1.1}
+\end{figure}
+From \ref{fig:1.1}, we can see that the error in the plot of the exact and numerical solution as the time step reached 0.2, the numerical solution was moving away from the exact solution. This indicates that h=0.5 is not a good approximation that of h=0.5 for the differential equation.
+
+\begin{table}[ht]\caption{$\frac{dy}{dt} = 2y + t^2 - 5  \quad y(0)=1 \quad h=0.2$}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Step  &  Approximate  & Exact & Error=$|$Exact - Approx$|$ \\
+\hline
+$t_0 = 0 $	& 1	& 1 &	0 \\
+\hline
+$t_1 = 0.2 $ & 0.265219 & 0.26536 & 0.000141 \\
+\hline
+$t_2 = 0.4 $ & -0.811926	& -0.811519	& 0.000407 \\
+\hline
+$t_3 = 0.6 $	& -2.380146 &	-2.379258 &	0.000888 \\
+\hline
+$t_4 = 0.8 $	& -4.661291	& -4.65956 &	0.001731 \\
+\hline
+$t_5 = 1.0 $ & -7.98632	& -7.983146	& 0.003174 \\
+\hline
+$t_6 = 1.2 $ 	& -12.84897	& -12.843365 &	0.005606 \\
+\hline
+$t_7 = 1.4 $ & -19.985808	& -19.976161	& 0.009648\\
+\hline
+$t_8 = 1.6 $ & -30.495663 & -30.479366 & 	0.016297\\
+\hline
+$t_9 = 1.8 $ & -46.017793 & -45.990654	& 0.027139\\
+\hline
+$t_{10} = 2.0 $ & -68.997688 & -68.952997 & 0.04469 \\
+\hline
+$t_{11} = 2.2 $	& -103.083586 & -103.010658	& 0.072928 \\
+\hline
+$t_{12} = 2.4 $	& -153.718022 & -153.599904	& 0.118118 \\
+\hline
+$t_{13} = 2.6 $	& -229.020302 &	-228.830197	& 0.190105 \\
+\hline
+$t_{14} = 2.8 $	& -341.103009 & -340.798694 &	0.304315 \\
+\hline
+$t_{15} = 3.0 $	& -508.035992 & -507.551125	 & 0.484867 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \begin{center}
+  \includegraphics[width=10.5cm]{ax1.jpg}
+  \end{center}
+  \caption{$\frac{dy}{dt} = 2y + t^2 - 5 \quad y(0)= 1 \quad h = 0.5, \quad 0.2 \quad and \quad 0.01 $}
+  \label{fig:1.2}
+\end{figure}
+From \ref{fig:1.2}, we can see that the error in the plot of the exact and numerical solution is almost not seen or noticed. This indicates that h=0.2 is a better approximation that of h=0.5 for the differential equation.
+
+\begin{table}[ht]\caption{$\frac{dy}{dt} = 2y + t^2 - 5  \quad y(0)=1 \quad h=0.01$}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Step  &  Approximate  & Exact & Error=$|$Exact - Approx$|$ \\
+\hline
+$t_0$ = 0 &	1 &	1	& 0.00E+00\\
+\hline
+$t_1$= 0.01 &	0.969698	& 0.969698	& 4.18E-11 \\
+\hline
+$t_2$ = 0.02 & 0.938787 & 0.938787	& 8.51E-11 \\
+\hline
+$t_3$ =0.03 &	0.907254	& 0.907254	& 1.30E-10 \\
+\hline
+$t_4$ =0.04 &	0.875091	& 0.875091	& 1.76E-10\\
+\hline
+\vdots & \vdots & \vdots & \vdots \\
+\hline
+$t_{295}$ =2.95	& -459.873085 &	-459.873081	& 3.68E-06\\
+\hline
+$t_{296}$ =2.96	& -469.125442 &	-469.125439	& 3.77E-06\\
+\hline
+$t_{297}$=2.97	& -478.564112 &	-478.564108 & 3.86E-06\\
+\hline
+$t_{298}$ =2.98	& -488.192855 &	-488.192851	& 3.95E-06\\
+\hline
+$t_{299}$ =2.99	& -498.01551 & -498.015506 & 4.04E-06\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}[h]
+  \begin{center}
+  \includegraphics[width=10.5cm]{ax2.jpg}
+  \end{center}
+  \caption{$\frac{dy}{dt} = 2y + t^2 - 5 \quad y(0)= 1 \quad h = 0.5, \quad 0.2 \quad and \quad 0.01 $}
+  \label{fig:1.3}
+\end{figure}
+
+From \ref{fig:1.3}, we can see that there is less error in the plot of the exact and numerical solution. This indicates that h=0.01 is a good approximation for the differential equation.
+
+\begin{figure}[h]
+  \begin{center}
+  \includegraphics[width=10.5cm]{err1.jpg}
+  \end{center}
+  \caption{$\frac{dy}{dt} = 2y + t^2 - 5 \quad y(0)= 1 \quad h = 0.5, \quad 0.2 \quad and \quad 0.01 $}
+  \label{fig:1.4}
+\end{figure}
+
+\newpage
+\noindent
+From fig \ref{fig:1.4} we can clearly see that at step h = 0.5, the error shot up as it reached time 2.5. This moved away from the exact solution.
+
+With that of h = 0.2, the error was limited but as it got to 2.5, it started increasing. In comparison of 0.2 and that of h=0.5, 0.2 is a better approximation than that of h= 0.5.
+
+With that of h=0.01, the error was minimized and it gives us a good approximation. 
+
+From the illustration above, we can conclude that the Runge-Kutta Method works best when the step size is small. However, choosing a small step size is computational expensive since you need several steps to reach or gain a good result.
+
+\subsubsection{Algorithm and Flowchart of RK4 Methods}
+
+\textbf{Algorithm}
+
+1. Start
+
+2. Define function $f(x,y)$
+
+3. Read values of the initial condition $x_o \text{and} y_0$, number of steps and calculate endpoint.
+
+4. Calculate step size $h = \frac{x_n - x_0}{n}$
+
+5. Set i = 0
+
+6. Loop
+\begin{align*}
+k_1 &= h * f(x_0 , y_0) \\
+k_2 &= h * f(x_0 + \frac{h}{2}, y_0 + \frac{k_1}{2}) \\
+k_3 &= h * f(x_0 + \frac{h}{2}, y_0 + \frac{k_2}{2}) \\
+k_4 &= h * f(x_0 + h, y_0 + k_3) \\
+k &= (k_1 + 2k_2 + 2k_3 + k_4)/6 \\
+y_n &= y_0 + k \\
+i &= i+1 \\
+x_0 &= x_0 + h \\
+y_n &= y_n
+\end{align*}
+
+7. Display $y_n$ as result
+
+8. Stop
+
+\newpage
+\textbf{Flowchart}
+
+\begin{center}
+\includegraphics[width=3.5cm]{flo.png}
+\end{center}
+
+\end{document}

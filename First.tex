@@ -1,0 +1,139 @@
+\documentclass[12pt]{article}
+%----------------Packages----------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{tikz}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\usetikzlibrary{calc}
+%----------------x----Packages-------x------------
+\begin{document}
+
+{\color{red}
+{
+\begin{equation}\tag{2} \label{eqn2}
+\begin{split}
+ x^\prime = u \\
+ y^\prime = v
+ \end{split}
+\end{equation}
+}}
+
+\begin{theorem}
+Belinda Adjei
+\end{theorem}
+
+\begin{proof}
+She is good 
+\end{proof}
+
+\begin{definition}
+Bella
+\end{definition}
+
+\begin{proposition}
+Blinks
+\end{proposition}
+
+\begin{lemma}
+Bel Bel
+\end{lemma}
+
+\begin{remark}
+Belcheezy
+\end{remark}
+
+\begin{corollary}
+Belin
+\end{corollary}
+
+\begin{example}
+Berla
+\end{example}
+
+\begin{solution}
+Berl
+\end{solution}
+
+\begin{equation}
+\begin{split}
+\frac{\partial^2f}{\partial x^2} + \frac{\partial^2f}{\partial y^2} + \frac{\partial^2f}{\partial z^2} &= \cos 2\theta + \sin \theta \cos^2\theta + \cos 2\theta \sin 2 \theta +\cos 2\theta  \sin 2 \theta + \cos 2\theta \sin 2 \theta \\
+&\hspace{1cm}+ \cos 2\theta \sin 2 \theta+ \cos 2\theta \sin 2 \theta \\
+&= \cos 2\theta + \sin \theta \cos^2\theta + \cos 2\theta \sin 2 \theta +\cos 2\theta  \sin 2 \theta + \cos 2\theta \sin 2 \theta \\
+& \hspace{1cm} + \cos 2\theta \sin 2 \theta+ \cos 2\theta \sin 2 \theta \\
+&= \cos 2\theta + \sin \theta \cos^2\theta + \cos 2\theta \sin 2 \theta +\cos 2\theta  \sin 2 \theta + \cos 2\theta \sin 2 \theta \\
+&\hspace{1cm}+ \cos 2\theta \sin 2 \theta+ \cos 2\theta \sin 2 \theta
+\end{split}
+\end{equation}
+
+\begin{equation*}\tag{Belinda}\label{eqn1}
+\frac{\partial^2f}{\partial x^2} + \frac{\partial^2f}{\partial  y^2} + \frac{\partial^2f}{\partial z^2} = \cos 2\theta + \sin  \theta \cos^2\theta 
+\end{equation*}
+
+From equation \ref{eqn1}
+
+\newpage
+
+\begin{itemize}
+\item[\textbf{(a)}] Mavis
+\begin{itemize}
+\item Attactive hair
+\item Nice body
+\item Beautiful face
+\item Sexy eyes
+\end{itemize}
+\item[\textbf{(b)}] Belinda
+\item[\textbf{(c)}] Asaan
+\item[\textbf{(d)}] David
+\item[\textbf{(e)}] Kofi
+\end{itemize}
+
+\vspace{1cm}
+
+\begin{enumerate}
+\item Mavis
+\item Belinda
+\item Asaan
+\item Kojo
+\item David
+\end{enumerate}
+
+It was mentioned in \cite{MN2021} that ... and in \cite{BAKW2025} that ...
+
+\begin{thebibliography}{99}
+\bibitem{BAKW2025} B. Adjei and K. Wilson,
+         {\em{Family Planning - An Introduction} Family Planning - An Introduction},
+         University of Ghana Press,
+         2025,
+         \textbf{331 - 369.} 
+\bibitem{MN2021} M. Nortey, 
+         {\em The Art of Life}, 
+         Cambridge University Press,
+         2021.
+\end{thebibliography}
+
+All Runge–Kutta methods mentioned up to now are explicit methods. Explicit Runge–Kutta methods are generally unsuitable for the solution of stiff equations because their region of absolute stability is small; in particular, it is bounded.[19] This issue is especially important in the solution of partial differential equations.
+
+The instability of explicit Runge–Kutta methods motivates the development of implicit methods. An implicit Runge–Kutta method has the form
+
+${\displaystyle y_{n+1}=y_{n}+h\sum _{i=1}^{s}b_{i}k_{i},}y_{n+1}=y_{n}+h\sum _{i=1}^{s}b_{i}k_{i},
+where
+
+{\displaystyle k_{i}=f\left(t_{n}+c_{i}h,\ y_{n}+h\sum _{j=1}^{s}a_{ij}k_{j}\right),\quad i=1,\ldots ,s.}{\displaystyle k_{i}=f\left(t_{n}+c_{i}h,\ y_{n}+h\sum _{j=1}^{s}a_{ij}k_{j}\right),\quad i=1,\ldots ,s.} [20]
+The difference with an explicit method is that in an explicit method, the sum over j only goes up to i − 1. This also shows up in the Butcher tableau: the coefficient matrix {\displaystyle a_{ij}}a_{ij} of an explicit method is lower triangular. In an implicit method, the sum over j goes up to s and the coefficient matrix is not triangular, yielding a Butcher tableau of the form[13]
+
+{\displaystyle {\begin{array}{c|cccc}c_{1}&a_{11}&a_{12}&\dots &a_{1s}\\c_{2}&a_{21}&a_{22}&\dots &a_{2s}\\\vdots &\vdots &\vdots &\ddots &\vdots \\c_{s}&a_{s1}&a_{s2}&\dots &a_{ss}\\\hline &b_{1}&b_{2}&\dots &b_{s}\\&b_{1}^{*}&b_{2}^{*}&\dots &b_{s}^{*}\\\end{array}}={\begin{array}{c|c}\mathbf {c} &A\\\hline &\mathbf {b^{T}} \\\end{array}}}{\displaystyle {\begin{array}{c|cccc}c_{1}&a_{11}&a_{12}&\dots &a_{1s}\\c_{2}&a_{21}&a_{22}&\dots &a_{2s}\\\vdots &\vdots &\vdots &\ddots &\vdots \\c_{s}&a_{s1}&a_{s2}&\dots &a_{ss}\\\hline &b_{1}&b_{2}&\dots &b_{s}\\&b_{1}^{*}&b_{2}^{*}&\dots &b_{s}^{*}\\\end{array}}={\begin{array}{c|c}\mathbf {c} &A\\\hline &\mathbf {b^{T}} \\\end{array}}}
+See Adaptive Runge-Kutta methods above for the explanation of the {\displaystyle b^{*}}b^* row.$
+
+The consequence of this difference is that at every step, a system of algebraic equations has to be solved. This increases the computational cost considerably. If a method with s stages is used to solve a differential equation with m components, then the system of algebraic equations has ms components. This can be contrasted with implicit linear multistep methods (the other big family of methods for ODEs): an implicit s-step linear multistep method needs to solve a system of algebraic equations with only m components, so the size of the system does not increase as the number of steps increases.[21] 
+
+
+
+\end{document}
